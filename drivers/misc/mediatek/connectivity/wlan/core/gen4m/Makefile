@@ -404,7 +404,7 @@ ifeq ($(MTK_WLAN_SAR_PROJECT), agate)
     ccflags-y += -DCFG_AGATE_SAR
 endif
 
-ifneq ($(filter MTK_WCN_REMOVE_KERNEL_MODULE,$(KBUILD_SUBDIR_CCFLAGS)),)
+ifeq ($(CONFIG_WLAN_DRV_BUILD_IN),y)
     ccflags-y += -DCFG_BUILT_IN_DRIVER=1
 else
     ccflags-y += -DCFG_BUILT_IN_DRIVER=0
