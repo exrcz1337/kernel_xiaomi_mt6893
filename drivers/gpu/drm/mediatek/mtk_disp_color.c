@@ -50,7 +50,9 @@ static int g_color_bypass[DISP_COLOR_TOTAL];
 static DEFINE_MUTEX(g_color_reg_lock);
 static struct DISPLAY_COLOR_REG g_color_reg;
 static int g_color_reg_valid;
+#if !defined(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K10A_42_02_0B_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD)
 static atomic_t g_color_initiated = ATOMIC_INIT(0);
+#endif
 
 #define C1_OFFSET (0)
 #define color_get_offset(module) (0)
@@ -3393,6 +3395,8 @@ static int mtk_color_user_cmd(struct mtk_ddp_comp *comp,
 struct color_backup {
 	unsigned int COLOR_CFG_MAIN;
 };
+
+#if !defined(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K10A_42_02_0B_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD)
 static struct color_backup g_color_backup;
 
 static void ddp_color_backup(struct mtk_ddp_comp *comp)
@@ -3408,6 +3412,7 @@ static void ddp_color_restore(struct mtk_ddp_comp *comp)
 		return;
 	writel(g_color_backup.COLOR_CFG_MAIN, comp->regs + DISP_COLOR_CFG_MAIN);
 }
+#endif
 
 static void mtk_color_prepare(struct mtk_ddp_comp *comp)
 {
@@ -3437,8 +3442,10 @@ static void mtk_color_prepare(struct mtk_ddp_comp *comp)
 		DISP_COLOR_SHADOW_CTRL, COLOR_BYPASS_SHADOW);
 #endif
 #endif
+#if !defined(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K10A_42_02_0B_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD)
 	// restore DISP_COLOR_CFG_MAIN register
 	ddp_color_restore(comp);
+#endif
 }
 
 static void mtk_color_unprepare(struct mtk_ddp_comp *comp)
@@ -3451,8 +3458,10 @@ static void mtk_color_unprepare(struct mtk_ddp_comp *comp)
 	atomic_set(&g_color_is_clock_on[index_of_color(comp->id)], 0);
 	spin_unlock_irqrestore(&g_color_clock_lock, flags);
 	DDPINFO("%s @ %d......... spin_unlock_irqrestore ", __func__, __LINE__);
+#if !defined(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K10A_42_02_0B_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD)
 	// backup DISP_COLOR_CFG_MAIN register
 	ddp_color_backup(comp);
+#endif
 	mtk_ddp_comp_clk_unprepare(comp);
 }
 

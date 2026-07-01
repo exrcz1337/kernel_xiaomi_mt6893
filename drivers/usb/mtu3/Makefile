@@ -3,6 +3,12 @@
 ccflags-$(CONFIG_USB_MTU3_DEBUG)	+= -DDEBUG
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
 
+ifeq ($(CONFIG_AGATE_CHARGER),y)
+	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_agate/
+else
+	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc/
+endif
+
 ifeq (y, $(filter y, $(CONFIG_MACH_MT6779) $(CONFIG_MACH_MT6785)))
 ccflags-y += -DMTU3_USE_SPM_API
 endif

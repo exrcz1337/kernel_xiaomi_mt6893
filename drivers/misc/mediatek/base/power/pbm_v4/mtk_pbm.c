@@ -17,6 +17,7 @@
 #include <linux/suspend.h>
 #include <linux/proc_fs.h>
 #include <linux/uaccess.h>
+#include <mach/mtk_pbm.h>
 
 #include <mtk_pbm.h>
 #include <mtk_pbm_common.h>

@@ -120,6 +120,7 @@ struct drm_panel {
 	 * panel notifier list head
 	 */
 	struct blocking_notifier_head nh;
+	bool panel_initialized;
 };
 
 /**

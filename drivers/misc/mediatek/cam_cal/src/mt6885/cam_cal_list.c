@@ -11,8 +11,8 @@
 
 #define MAX_EEPROM_SIZE_16K 0x4000
 
-
 struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
+#if 0
 	/*Below is commom sensor */
 	{IMX586_SENSOR_ID, 0xA0, Common_read_region, MAX_EEPROM_SIZE_16K,
 		BL24SA64_write_region},
@@ -35,10 +35,8 @@ struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
 		DW9763_write_region},
 	{IMX481_SENSOR_ID, 0xA4, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_8K,
 		BL24SA64_write_region},
-	{OV13B10LN_SENSOR_ID, 0xB0, Common_read_region},
-#ifdef SUPPORT_S5K4H7
-	{S5K4H7LN_SENSOR_ID, 0x20, s5k4h7_read_region},
 #endif
+	{AGATES5KHM2_SENSOR_ID, 0xA2, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
 	/*  ADD before this line */
 	{0, 0, 0}       /*end of list */
 };

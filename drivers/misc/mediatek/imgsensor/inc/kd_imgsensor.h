@@ -604,6 +604,18 @@
 #define SENSOR_DRVNAME_OV13B10_MIPI_RAW         "ov13b10_mipi_raw"
 #define SENSOR_DRVNAME_OV02B10_MIPI_RAW         "ov02b10_mipi_raw"
 
+//K11R
+#define AGATES5KHM2_SENSOR_ID                    0x1ad2
+#define SENSOR_DRVNAME_AGATES5KHM2_MIPI_RAW      "agates5khm2_mipi_raw"
+#define AGATEOV64B40_SENSOR_ID                   0x6442
+#define SENSOR_DRVNAME_AGATEOV64B40_MIPI_RAW     "agateov64b40_mipi_raw"
+#define AGATEOV16A1Q_SENSOR_ID                   0x1641
+#define SENSOR_DRVNAME_AGATEOV16A1Q_MIPI_RAW     "agateov16a1q_mipi_raw"
+#define AGATES5K5E9_SENSOR_ID                    0x559B
+#define SENSOR_DRVNAME_AGATES5K5E9_MIPI_RAW      "agates5k5e9_mipi_raw"
+#define AGATEIMX355_SENSOR_ID                    0x355
+#define SENSOR_DRVNAME_AGATEIMX355_MIPI_RAW      "agateimx355_mipi_raw"
+
 /******************************************************************************
  *
  ******************************************************************************/

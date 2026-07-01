@@ -173,10 +173,11 @@ signed int battery_get_uisoc(void)
 
 signed int battery_get_bat_temperature(void)
 {
+/*
 #if defined(CONFIG_MTK_DISABLE_GAUGE)
 	union power_supply_propval value;
 
-	/* get battery current from external "battery" power supply if support */
+
 	struct power_supply *ba_psy = power_supply_get_by_name("battery");
 
 	if (ba_psy) {
@@ -188,7 +189,7 @@ signed int battery_get_bat_temperature(void)
 		return value.intval;
 	}
 #endif
-
+*/
 	/* TODO */
 	if (is_battery_init_done())
 		return force_get_tbat(true);

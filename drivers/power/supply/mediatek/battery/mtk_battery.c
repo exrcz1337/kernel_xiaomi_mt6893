@@ -1609,6 +1609,7 @@ int force_get_tbat_internal(bool update)
 	static struct timespec pre_time;
 	struct timespec ctime, dtime;
 
+	gm.fixed_bat_tmp = 25;
 	if (is_battery_init_done() == false) {
 		gm.tbat_precise = 250;
 		return 25;

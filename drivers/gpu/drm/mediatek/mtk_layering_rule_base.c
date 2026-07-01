@@ -1680,17 +1680,15 @@ static void clear_layer(struct drm_mtk_layering_info *disp_info,
 				is_dual_pipe = mtk_crtc->is_dual_pipe;
 			}
 		}
-
-		/* Clear layer with RPO should check more condition
-		 * since dual pipe enable
-		 */
-		if (!is_dual_pipe && (c->src_width < c->dst_width &&
-			c->src_height < c->dst_height) &&
-			get_layering_opt(LYE_OPT_RPO) &&
-			top < disp_info->gles_tail[di]) {
+/*
+		if ((c->src_width < c->dst_width &&
+		     c->src_height < c->dst_height) &&
+		     get_layering_opt(LYE_OPT_RPO) &&
+		    top < disp_info->gles_tail[di]) {
 			c->layer_caps |= MTK_DISP_RSZ_LAYER;
 			l_rule_info->addon_scn[di] = ONE_SCALING;
-		} else {
+		} else */
+		{
 			c->layer_caps &= ~MTK_DISP_RSZ_LAYER;
 			l_rule_info->addon_scn[di] = NONE;
 
@@ -2489,6 +2487,9 @@ static int RPO_rule(struct drm_crtc *crtc,
 				dst_roi.width, dst_roi.height);
 			break;
 		}
+
+		//if (c->layer_caps & MTK_LAYERING_OVL_ONLY)
+			//break;
 
 		if (!is_layer_across_each_pipe(crtc, c))
 			break;

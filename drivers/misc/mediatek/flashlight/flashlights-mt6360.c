@@ -124,7 +124,10 @@ static const unsigned char mt6360_torch_level[MT6360_LEVEL_TORCH] = {
 	0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E, 0x10, 0x12,
 	0x14, 0x16, 0x18, 0x1A, 0x1C, 0x1E
 };
-
+static const int mt6360_torch_current[MT6360_LEVEL_TORCH] = {
+	25, 50, 75, 100, 125, 150, 175, 200, 225, 250,
+         275, 300
+};
 /* 0x00~0x74 6.25mA/step 0x75~0xB1 12.5mA/step */
 static const unsigned char mt6360_strobe_level[MT6360_LEVEL_FLASH] = {
 	0x00, 0x04, 0x08, 0x0C, 0x10, 0x14, 0x18, 0x1C, 0x20, 0x24,
@@ -138,6 +141,11 @@ static int mt6360_en_ch1;
 static int mt6360_en_ch2;
 static int mt6360_level_ch1;
 static int mt6360_level_ch2;
+
+static int torch_level_ch1 = 0;
+static int torch_level_ch2 = 0;
+static int ch1_status = 0;
+static int ch2_status = 0;
 
 static int mt6360_is_charger_ready(void)
 {
@@ -803,6 +811,251 @@ err_node_put:
 	return -EINVAL;
 }
 
+static int get_torch_duty(enum led_brightness value)
+{
+	int i;
+	if (value <= 0){
+		return 0;
+	}
+	for (i = 0 ; i < MT6360_LEVEL_TORCH ; i ++){
+		if (value < mt6360_torch_current[i])
+			break;
+	}
+	pr_info("set torch value= %d, duty = %d",(int)value,i);
+	return i;
+}
+static void mt6360_flash_brightness_set(struct led_classdev *led_cdev,
+		enum led_brightness value)
+{
+	int duty;
+	duty = get_torch_duty(value);
+	if (0 == strcmp(led_cdev->name, "led:torch_0")) {
+		torch_level_ch1 = duty;
+	} else if (0 == strcmp(led_cdev->name, "led:torch_1")) {
+		torch_level_ch2 = duty;
+	}
+	return;
+}
+static void mt6360_switch_set(struct led_classdev *led_cdev,
+		enum led_brightness value)
+{
+	struct flashlight_arg arg;
+	memset(&arg, 0, sizeof(struct flashlight_arg));
+	arg.channel = 0;
+	 mt6360_disable(MT6360_CHANNEL_CH1);
+	 mt6360_disable(MT6360_CHANNEL_CH2);
+	 mt6360_decouple_mode = 0;
+	mt6360_en_ch1 = ch1_status;
+	mt6360_en_ch2 = ch2_status;
+	if (value <= 0) {
+		if (0 == strcmp(led_cdev->name, "led:switch_0")) {
+			arg.channel = MT6360_CHANNEL_CH1;
+			ch1_status = MT6360_DISABLE;
+		} else if (0 == strcmp(led_cdev->name, "led:switch_1")) {
+			arg.channel = MT6360_CHANNEL_CH2;
+			ch2_status = MT6360_DISABLE;
+		}
+		mt6360_operate(arg.channel, MT6360_DISABLE);
+	} else {
+//torch mode
+	if (0 == strcmp(led_cdev->name, "led:switch_0")) {
+		arg.channel = MT6360_CHANNEL_CH1;
+		arg.level = torch_level_ch1;
+		ch1_status = MT6360_ENABLE;
+	} else if (0 == strcmp(led_cdev->name, "led:switch_1")) {
+		arg.channel = MT6360_CHANNEL_CH2;
+		arg.level = torch_level_ch2;
+		ch2_status = MT6360_ENABLE;
+	}
+	pr_info("get torch value ch1 = %d, ch2 = %d",torch_level_ch1,torch_level_ch2);
+	pr_info("set level = %d",arg.level);
+	if (arg.level == 0){
+		mt6360_operate(arg.channel, MT6360_DISABLE);
+		return;
+	}
+//	mt6360_set_driver(1);
+#if 1
+	if (arg.channel == MT6360_CHANNEL_CH1) {
+		flashlight_set_torch_brightness (
+		flashlight_dev_ch1, mt6360_torch_level[arg.level - 1]);
+		mt6360_timeout_ms[MT6360_CHANNEL_CH1] = 0;
+		mt6360_en_ch1 = MT6360_ENABLE_TORCH;
+		mt6360_operate(MT6360_CHANNEL_CH1, MT6360_ENABLE);
+	} else if (arg.channel == MT6360_CHANNEL_CH2) {
+		flashlight_set_torch_brightness (
+		flashlight_dev_ch2, mt6360_torch_level[arg.level - 1]);
+		mt6360_timeout_ms[MT6360_CHANNEL_CH2] = 0;
+		mt6360_en_ch2 = MT6360_ENABLE_TORCH;
+		mt6360_operate(MT6360_CHANNEL_CH2, MT6360_ENABLE);
+	}
+#endif
+	}
+	return;
+}
+static void mt6360_torch_brightness_set(struct led_classdev *led_cdev,
+		enum led_brightness value)
+{
+	struct flashlight_arg arg;
+	memset(&arg, 0, sizeof(struct flashlight_arg));
+	arg.channel = 0;
+	 mt6360_disable(MT6360_CHANNEL_CH1);
+	 mt6360_disable(MT6360_CHANNEL_CH2);
+	 mt6360_decouple_mode = 0;
+	if (LED_OFF == value) {
+		arg.level = 0;
+		return ;
+	} else if ((value > 0) && (value <= 3)) {
+			arg.level = value;
+	} else if (value < 0) {
+		mt6360_operate(arg.channel, MT6360_DISABLE);
+		mt6360_set_driver(0);
+		return;
+	} else {
+		arg.level = 3; //torch current 125ma
+	}
+//torch mode
+	if (0 == strcmp(led_cdev->name, "torch-light0")) {
+		arg.channel = MT6360_CHANNEL_CH1;
+		if ((value > 0) && (value <= 3)) {
+			arg.level = value;
+		} else {
+			arg.level = 3;
+		}
+	} else if (0 == strcmp(led_cdev->name, "torch-light1")) {
+		arg.channel = MT6360_CHANNEL_CH2;
+		if ((value > 0) && (value <= 3)) {
+			arg.level = value;
+		} else {
+		arg.level = 3;
+		}
+	}
+//	mt6360_set_driver(1);
+#if 1
+	if (arg.channel == MT6360_CHANNEL_CH1) {
+		flashlight_set_torch_brightness (
+		flashlight_dev_ch1, mt6360_torch_level[arg.level]);
+		mt6360_timeout_ms[MT6360_CHANNEL_CH1] = 0;
+		mt6360_en_ch1 = MT6360_ENABLE_TORCH;
+		mt6360_operate(MT6360_CHANNEL_CH2, MT6360_DISABLE);
+	} else if (arg.channel == MT6360_CHANNEL_CH2) {
+		flashlight_set_torch_brightness (
+		flashlight_dev_ch2, mt6360_torch_level[arg.level]);
+		mt6360_timeout_ms[MT6360_CHANNEL_CH2] = 0;
+		mt6360_en_ch2 = MT6360_ENABLE_TORCH;
+		mt6360_operate(MT6360_CHANNEL_CH1, MT6360_DISABLE);
+	}
+#endif
+//	mt6360_enable();
+	//}
+	return;
+}
+static void mt6360_torch2_brightness_set(struct led_classdev *led_cdev,
+		enum led_brightness value)
+{
+	pr_info("set torch value= %d",value);
+	if (value >= MT6360_LEVEL_TORCH) {
+		value = MT6360_LEVEL_TORCH;
+	}
+	mt6360_set_scenario(
+			FLASHLIGHT_SCENARIO_CAMERA |
+			FLASHLIGHT_SCENARIO_COUPLE);
+	mt6360_set_level(MT6360_CHANNEL_CH1, value);
+	mt6360_set_level(MT6360_CHANNEL_CH2, value);
+	mt6360_timeout_ms[MT6360_CHANNEL_CH1] = 0;
+	mt6360_timeout_ms[MT6360_CHANNEL_CH2] = 0;
+	if (value <= 0) {
+		mt6360_operate(MT6360_CHANNEL_CH1, MT6360_DISABLE);
+		mt6360_operate(MT6360_CHANNEL_CH2, MT6360_DISABLE);
+	} else {
+		mt6360_operate(MT6360_CHANNEL_CH1, MT6360_ENABLE);
+		mt6360_operate(MT6360_CHANNEL_CH2, MT6360_ENABLE);
+	}
+	return;
+}
+static struct led_classdev mtk_flash_led[MT6360_CHANNEL_NUM + 2] = {
+	{
+		.name = "led:switch_0",
+		.brightness_set =  mt6360_switch_set,
+		.brightness = LED_OFF,
+	},
+	{
+		.name = "led:switch_1",
+		.brightness_set = mt6360_switch_set,
+		.brightness = LED_OFF,
+	},
+	{
+		.name = "led:torch_0",
+		.brightness_set = mt6360_flash_brightness_set,
+		.brightness = LED_OFF,
+	},
+	{
+		.name = "led:torch_1",
+		.brightness_set = mt6360_flash_brightness_set,
+		.brightness = LED_OFF,
+	},
+};
+static struct led_classdev mtk_torch_led[MT6360_CHANNEL_NUM + 1] = {
+	{
+		.name = "torch-light0",
+		.brightness_set = mt6360_torch_brightness_set,
+		.brightness = LED_OFF,
+	},
+	{
+		.name = "torch-light1",
+		.brightness_set = mt6360_torch_brightness_set,
+		.brightness = LED_OFF,
+	},
+	{
+		.name = "torch-light2",
+		.brightness_set = mt6360_torch2_brightness_set,
+		.brightness = LED_OFF,
+	},
+};
+static int32_t mtk_flashlight_create_torch_classdev(struct platform_device *pdev,
+				struct mt6360_platform_data *pdata)
+{
+	int32_t rc = 0;
+	int32_t i = 0;
+	for (i = 0; i <= pdata->channel_num; i++) {
+		mt6360_torch_brightness_set(&mtk_torch_led[i],
+			LED_OFF);
+			rc = led_classdev_register(&pdev->dev,
+				&mtk_torch_led[i]);
+			if (rc) {
+				pr_err("Failed to register %d led dev. rc = %d\n",
+					i, rc);
+				return rc;
+			}
+	}
+	return 0;
+};
+static int32_t mtk_flashlight_create_flash_classdev(struct platform_device *pdev,
+				struct mt6360_platform_data *pdata)
+{
+	int32_t rc = 0;
+	int32_t i = 0;
+	for (i = 0; i <= pdata->channel_num + 1; i++) {
+		//mt6360_flash_brightness_set(&mtk_flash_led[i],
+			//LED_OFF);
+			rc = led_classdev_register(&pdev->dev,
+				&mtk_flash_led[i]);
+			if (rc) {
+				pr_err("Failed to register %d led dev. rc = %d\n",
+						i, rc);
+				return rc;
+			}
+	}
+	return 0;
+};
+
+int32_t mtk_flashlight_create_classdev(struct platform_device *pdev, struct mt6360_platform_data *pdata)
+{
+	int32_t rc = 0;
+	rc = mtk_flashlight_create_torch_classdev(pdev, pdata);
+	rc = mtk_flashlight_create_flash_classdev(pdev, pdata);
+	return rc;
+}
+
 static int mt6360_probe(struct platform_device *pdev)
 {
 	struct mt6360_platform_data *pdata = dev_get_platdata(&pdev->dev);
@@ -877,7 +1130,7 @@ static int mt6360_probe(struct platform_device *pdev)
 		if (flashlight_dev_register(MT6360_NAME, &mt6360_ops))
 			return -EFAULT;
 	}
-
+	mtk_flashlight_create_classdev(pdev, pdata);
 	pr_debug("Probe done.\n");
 
 	return 0;

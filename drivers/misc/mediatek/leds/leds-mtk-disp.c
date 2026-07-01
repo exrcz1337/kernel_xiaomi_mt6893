@@ -74,6 +74,7 @@ struct mtk_leds_info {
 static DEFINE_MUTEX(leds_mutex);
 struct leds_desp_info *leds_info;
 static BLOCKING_NOTIFIER_HEAD(mtk_leds_chain_head);
+static int lcd_brightness;
 
 int mtk_leds_register_notifier(struct notifier_block *nb)
 {
@@ -170,9 +171,13 @@ static int led_level_disp_set(struct mtk_led_data *s_led,
 	if (brightness == s_led->conf.level)
 		return 0;
 
+#ifdef MET_USER_EVENT_SUPPORT
+	if (enable_met_backlight_tag())
+		output_met_backlight_tag(brightness);
+#endif
 #ifdef CONFIG_DRM_MEDIATEK
-	mtkfb_set_backlight_level(brightness);
 	s_led->conf.level = brightness;
+	mtkfb_set_backlight_level(brightness);
 #endif
 	return 0;
 
@@ -244,6 +249,12 @@ int mt_leds_brightness_set(char *name, int level)
 }
 EXPORT_SYMBOL(mt_leds_brightness_set);
 
+int mt_leds_brightness_get(void)
+{
+	return lcd_brightness;
+}
+EXPORT_SYMBOL(mt_leds_brightness_get);
+
 static int led_level_set(struct led_classdev *led_cdev,
 					  enum led_brightness brightness)
 {
@@ -253,7 +264,7 @@ static int led_level_set(struct led_classdev *led_cdev,
 		container_of(led_cdev, struct led_conf_info, cdev);
 	struct mtk_led_data *led_dat =
 		container_of(led_conf, struct mtk_led_data, conf);
-
+	pr_debug("backlight = %d, last backlight = %d", brightness, led_dat->brightness);
 	if (led_dat->brightness == brightness)
 		return 0;
 
@@ -270,6 +281,8 @@ static int led_level_set(struct led_classdev *led_cdev,
 #endif
 
 	led_dat->brightness = brightness;
+	lcd_brightness = brightness;
+
 #ifdef CONFIG_LEDS_BRIGHTNESS_CHANGED
 	call_notifier(1, led_dat);
 #endif
@@ -287,6 +300,8 @@ static int led_level_set(struct led_classdev *led_cdev,
 	led_level_disp_set(led_dat, brightness);
 	led_dat->last_level = brightness;
 #endif
+
+	sysfs_notify(&led_cdev->dev->kobj, NULL, "brightness");
 	return 0;
 
 }

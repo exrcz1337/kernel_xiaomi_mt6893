@@ -25,7 +25,7 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
 # for TYPEC connection management
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/inc
 ifeq ($(CONFIG_TCPC_CLASS),y)
-	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc/inc
+	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_agate/inc
 endif
 # for ep0 test
 ccflags-y += -I$(srctree)/drivers/usb/core/

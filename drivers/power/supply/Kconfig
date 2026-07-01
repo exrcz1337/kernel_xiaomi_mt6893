@@ -860,6 +860,9 @@ endif
 if MACH_MT6893
 source "drivers/power/supply/mediatek/battery/Kconfig"
 source "drivers/power/supply/mediatek/charger/Kconfig"
+source "drivers/power/supply/mediatek/battery_agate/Kconfig"
+source "drivers/power/supply/mediatek/charger_agate/Kconfig"
+source "drivers/power/supply/ti_agate/Kconfig"
 endif
 
 if MACH_MT6885

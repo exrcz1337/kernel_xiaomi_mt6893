@@ -1569,6 +1569,17 @@ int mtk_drm_ioctl_aal_set_param(struct drm_device *dev, void *data,
 	return ret;
 }
 
+/*
+static void mtk_aal_setbypass(struct mtk_ddp_comp *comp, int bypass,
+	struct cmdq_pkt *handle)
+{
+	AALFLOW_LOG("\n");
+	cmdq_pkt_write(handle, comp->cmdq_base, comp->regs_pa + DISP_AAL_CFG,
+		bypass, 0x1);
+	atomic_set(&g_aal_force_relay, bypass);
+}
+*/
+
 static DEFINE_SPINLOCK(g_aal_get_irq_lock);
 
 static void disp_aal_clear_irq(struct mtk_ddp_comp *comp,
@@ -2197,6 +2208,25 @@ int mtk_drm_ioctl_aal_get_size(struct drm_device *dev, void *data,
 	return 0;
 }
 
+int mtk_drm_ioctl_bypass_aal(struct drm_device *dev, void *data,
+    struct drm_file *file_priv)
+{
+	int ret = 0;
+	int bypass = 0;
+	struct mtk_drm_private *private = dev->dev_private;
+	struct drm_crtc *crtc = private->crtc[0];
+
+	bypass = *((int *)data);
+
+	DDPFUNC("+");
+
+	disp_aal_set_bypass(crtc, bypass);
+
+	DDPFUNC("-");
+
+return ret;
+}
+
 static void mtk_aal_start(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle)
 {
 #if defined(CONFIG_MTK_DRE30_SUPPORT)
@@ -2496,7 +2526,6 @@ static void mtk_aal_prepare(struct mtk_ddp_comp *comp)
 	struct mtk_disp_aal *aal_data = comp_to_aal(comp);
 	bool first_restore = (atomic_read(&aal_data->is_clock_on) == 0);
 
-	AALFLOW_LOG("\n");
 	mtk_ddp_comp_clk_prepare(comp);
 	atomic_set(&aal_data->is_clock_on, 1);
 	if (comp->id == DDP_COMPONENT_AAL0)
@@ -2507,6 +2536,7 @@ static void mtk_aal_prepare(struct mtk_ddp_comp *comp)
 			&aal_data->is_clock_on, &g_aal_data->is_clock_on,
 			atomic_read(&aal_data->is_clock_on),
 			atomic_read(&g_aal_data->is_clock_on));
+
 
 #if defined(CONFIG_MTK_DRE30_SUPPORT)
 	if (aal_data->dre3_hw.clk) {
@@ -2616,6 +2646,7 @@ int mtk_aal_io_cmd(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 			spin_unlock_irqrestore(&g_aal_clock_lock, flags);
 		}
 	}
+	AALFLOW_LOG("end\n");
 	return 0;
 }
 

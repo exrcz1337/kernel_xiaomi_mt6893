@@ -45,6 +45,24 @@ ifneq ($(CONFIG_MTK_CMDQ_MBOX), y)
 mediatek-drm-y += mtk_cmdq_dummy.o
 endif
 
+mediatek-drm-y += \
+		  mi_disp/mi_disp_sysfs.o \
+		  mi_disp/mi_dsi_display.o \
+		  mi_disp/mi_dsi_panel.o \
+		  mi_disp/mi_disp_notifier.o \
+		  mi_disp/mi_disp_core.o \
+		  mi_disp/mi_disp_feature.o \
+		  mi_disp/mi_disp_log.o \
+		  mi_disp/mi_disp_procfs.o \
+		  mi_disp/mi_disp_file.o \
+		  mi_disp/mi_disp_print.o \
+		  mi_disp/mi_disp_debugfs.o \
+		  mi_disp/mi_cooler_brightness_clone.o \
+		  mi_disp/mi_disp_calib.o \
+		  mi_disp/mi_disp_esd_check.o \
+		  mi_disp/mi_dsi_panel_count.o \
+		  mi_disp/mi_drm_crtc.o \
+
 ifeq ($(CONFIG_DRM_MEDIATEK_DEBUG_FS),y)
 mediatek-drm-y += mtk_drm_debugfs.o
 endif

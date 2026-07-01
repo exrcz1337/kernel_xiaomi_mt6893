@@ -1549,6 +1549,10 @@ config BUILD_ARM64_DTB_OVERLAY_IMAGE_NAMES
 	  Space separated list of names of dtbs to append when
 	  building a concatenated overlay image
 
+config BUILD_XIAOMI_CAMERA_IMAGE_NAMES
+	string "To distinguish different project name"
+	help
+	  For Camera to distinguish project names.
 endmenu
 
 config COMPAT
@@ -1636,3 +1640,9 @@ source "arch/arm64/kvm/Kconfig"
 if CRYPTO
 source "arch/arm64/crypto/Kconfig"
 endif
+config HWCONF_MANAGER
+	bool "Hardware configuration and monitor information"
+	default y
+	help
+	It provides all kinds of components configuration information and
+	monitor values.

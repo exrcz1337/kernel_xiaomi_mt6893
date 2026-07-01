@@ -326,6 +326,10 @@ struct ssusb_mtk {
 	bool spm_mgr;
 	/* u2 cdp */
 	struct work_struct dp_work;
+	struct charger_device *chg_dev;
+#ifdef CONFIG_AGATE_CHARGER
+	struct charger_device *chg5_dev;
+#endif
 };
 
 /**

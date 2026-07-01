@@ -270,6 +270,10 @@ static int led_level_set(struct led_classdev *led_cdev, enum led_brightness brig
 
 	trans_level = brightness_maptolevel(led_conf, brightness);
 
+#ifdef MET_USER_EVENT_SUPPORT
+	if (enable_met_backlight_tag())
+		output_met_backlight_tag(brightness);
+#endif
 	pr_debug("set brightness: %d, %d", brightness, trans_level);
 
 	led_data->last_brightness = brightness;

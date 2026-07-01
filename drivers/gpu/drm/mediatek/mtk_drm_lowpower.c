@@ -65,8 +65,11 @@ static void mtk_drm_vdo_mode_enter_idle(struct drm_crtc *crtc)
 
 static void mtk_drm_cmd_mode_enter_idle(struct drm_crtc *crtc)
 {
+	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	mtk_drm_idlemgr_disable_crtc(crtc);
 	lcm_fps_ctx_reset(crtc);
+	if (mtk_crtc->esd_ctx)
+		atomic_set(&mtk_crtc->esd_ctx->target_time, 1);
 }
 
 static void mtk_drm_vdo_mode_leave_idle(struct drm_crtc *crtc)
@@ -467,7 +470,7 @@ int mtk_drm_idlemgr_init(struct drm_crtc *crtc, int index)
 	idlemgr_ctx->enterulps = 0;
 	idlemgr_ctx->idlemgr_last_kick_time = ~(0ULL);
 	idlemgr_ctx->cur_lp_cust_mode = 0;
-	idlemgr_ctx->idle_check_interval = 50;
+	idlemgr_ctx->idle_check_interval = 500;
 	idlemgr_ctx->idle_vblank_check_internal = 0;
 
 	snprintf(name, LEN, "mtk_drm_disp_idlemgr-%d", index);

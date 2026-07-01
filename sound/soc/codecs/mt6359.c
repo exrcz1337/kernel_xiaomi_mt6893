@@ -275,6 +275,7 @@ struct mt6359_priv {
 
 	int hp_gain_ctl;
 	int hp_hifi_mode;
+	int hp_pull_low_off;
 
 	struct mt6359_codec_ops ops;
 	struct dc_trim_data dc_trim;
@@ -691,9 +692,9 @@ static void zcd_enable(struct mt6359_priv *priv, bool enable, int device)
 	if (enable) {
 		switch (device) {
 		case DEVICE_RCV:
-			regmap_update_bits(priv->regmap,
-					   MT6359_AUDDEC_ANA_CON11,
-					   0x7, 0x2);
+			//regmap_update_bits(priv->regmap,
+			//		   MT6359_AUDDEC_ANA_CON11,
+			//		   0x7, 0x2);
 			break;
 		case DEVICE_LO:
 			regmap_update_bits(priv->regmap,
@@ -715,8 +716,8 @@ static void zcd_enable(struct mt6359_priv *priv, bool enable, int device)
 				   0x3 << 4, 0x0 << 4);
 		regmap_update_bits(priv->regmap, MT6359_ZCD_CON0,
 				   0x7 << 1, 0x5 << 1);
-		regmap_update_bits(priv->regmap, MT6359_ZCD_CON0,
-				   0x1 << 0, 0x1 << 0);
+//		gmap_update_bits(priv->regmap, MT6359_ZCD_CON0,
+//				 0x1 << 0, 0x1 << 0);
 	} else {
 		regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON11,
 				   0x7, 0x4);
@@ -2003,7 +2004,13 @@ static int mtk_hp_disable(struct mt6359_priv *priv)
 			   0x3 << 2, 0x0);
 
 	/* Disable AUD_ZCD */
-	zcd_enable(priv, false, DEVICE_HP);
+	//zcd_enable(priv, false, DEVICE_HP);
+	if (priv->hp_pull_low_off) {
+		regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
+				RG_HPLOUTPUTSTBENH_VAUDP32_MASK_SFT, 0x0);
+		regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
+				RG_HPROUTPUTSTBENH_VAUDP32_MASK_SFT, 0x0);
+	}
 	return 0;
 }
 
@@ -2052,7 +2059,7 @@ static int mtk_hp_impedance_disable(struct mt6359_priv *priv)
 	/* Disable Audio DAC */
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON0,
 			   0x000f, 0x0000);
-
+	if (!priv->hp_pull_low_off) {
 	/* Enable HPR/L STB enhance circuits for off state */
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
 			   RG_HPROUTPUTSTBENH_VAUDP32_MASK_SFT,
@@ -2060,7 +2067,7 @@ static int mtk_hp_impedance_disable(struct mt6359_priv *priv)
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
 			   RG_HPLOUTPUTSTBENH_VAUDP32_MASK_SFT,
 			   0x3 << RG_HPLOUTPUTSTBENH_VAUDP32_SFT);
-
+	}
 	/* Disable AUD_ZCD */
 	zcd_enable(priv, false, DEVICE_HP);
 
@@ -8084,6 +8091,11 @@ static int mt6359_platform_driver_probe(struct platform_device *pdev)
 	if (IS_ERR(priv->regmap))
 		return PTR_ERR(priv->regmap);
 
+	of_property_read_u32(pdev->dev.of_node,
+			"always_pull_low_off",
+			&priv->hp_pull_low_off);
+	dev_info(&pdev->dev, "%s(), hp_pull_low_off=%d\n",
+			__func__, priv->hp_pull_low_off);
 	dev_set_drvdata(&pdev->dev, priv);
 	priv->dev = &pdev->dev;
 

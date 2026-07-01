@@ -23,7 +23,7 @@
 		#interrupt-cells = <2>;
 		adc: adc {
 			compatible = "mediatek,mt6360_pmu_adc";
-			/*interrupt-parent = <&subpmic_mtk>;*/
+//			interrupt-parent = <&mt6360_pmu>;
 			interrupts = <41 0>, <43 0>, <44 0>;
 			interrupt-names = "bat_ovp_adc_evt",
 					  "adc_wakeup_evt",
@@ -32,7 +32,7 @@
 		};
 		mt6360_chg: chg {
 			compatible = "mediatek,mt6360_pmu_chg";
-			/*interrupt-parent = <&subpmic_mtk>;*/
+//			interrupt-parent = <&mt6360_pmu>;
 			interrupts = <4 0>, <6 0>, <7 0>, <9 0>,
 				     <12 0>, <13 0>, <14 0>, <15 0>,
 				     <27 0>, <29 0>, <32 0>, <35 0>,
@@ -83,7 +83,7 @@
 		};
 		fled {
 			compatible = "mediatek,mt6360_pmu_fled";
-			/*interrupt-parent = <&subpmic_mtk>;*/
+//			interrupt-parent = <&mt6360_pmu>;
 			interrupts = <11 0>, <74 0>, <75 0>, <78 0>,
 				     <79 0>;
 			interrupt-names = "fled_chg_vinovp_evt", "fled_tx_evt",
@@ -118,7 +118,7 @@
 		};
 		core {
 			compatible = "mediatek,mt6360_pmu_core";
-			/*interrupt-parent = <&subpmic_mtk>;*/
+//			interrupt-parent = <&mt6360_pmu>;
 			interrupts = <65 0>, <66 0>, <67 0>,
 				     <68 0>, <69 0>, <70 0>,
 				     <71 0>;
@@ -139,7 +139,7 @@
 
 	mt6360_pmic: mt6360_pmic_dts {
 		status = "ok";
-		interrupt-parent = <&mt6360_pmu>;
+//		interrupt-parent = <&mt6360_pmu>;
 		interrupts = <96 0>, <100 0>, <101 0>, <102 0>,
 			     <104 0>, <108 0>, <109 0>, <110 0>,
 			     <118 0>, <119 0>, <126 0>, <127 0>;
@@ -182,18 +182,19 @@
 
 	mt6360_ldo: mt6360_ldo_dts {
 		status = "ok";
-		interrupt-parent = <&mt6360_pmu>;
+        //interrupt-parent = <&mt6360_pmu>;
 		interrupts = <113 0>, <114 0>, <115 0>, <117 0>,
 			     <121 0>, <122 0>, <123 0>, <125 0>;
 		interrupt-names = "ldo1_oc_evt", "ldo2_oc_evt",
 				  "ldo3_oc_evt", "ldo5_oc_evt",
 				  "ldo1_pgb_evt", "ldo2_pgb_evt",
 				  "ldo3_pgb_evt", "ldo5_pgb_evt";
-		mt_pmic_vfp_ldo_reg: ldo1 {
+		mt_pmic_vmc_ldo_reg: ldo1 {
 			regulator-compatible = "LDO1";
-			regulator-name = "VFP";
+			regulator-name = "VMC";
 			regulator-min-microvolt = <1200000>;
 			regulator-max-microvolt = <3600000>;
+			regulator-always-on;
 		};
 		mt_pmic_vtp_ldo_reg: ldo2 {
 			regulator-compatible = "LDO2";
@@ -201,9 +202,9 @@
 			regulator-min-microvolt = <1200000>;
 			regulator-max-microvolt = <3600000>;
 		};
-		mt_pmic_vmc_ldo_reg: ldo3 {
+		mt_pmic_vfp_ldo_reg: ldo3 {
 			regulator-compatible = "LDO3";
-			regulator-name = "VMC";
+			regulator-name = "VFP";
 			regulator-min-microvolt = <1200000>;
 			regulator-max-microvolt = <3600000>;
 		};

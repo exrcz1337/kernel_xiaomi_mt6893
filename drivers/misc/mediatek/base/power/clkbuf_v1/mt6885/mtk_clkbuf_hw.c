@@ -1769,7 +1769,6 @@ void clk_buf_post_init(void)
 #ifndef CONFIG_MTK_NFC_CLKBUF_ENABLE
 	/* no need to use XO_NFC if no NFC */
 	clk_buf_ctrl_internal(CLK_BUF_NFC, CLK_BUF_FORCE_OFF);
-	CLK_BUF3_STATUS = CLOCK_BUFFER_DISABLE;
 #endif
 #ifdef CLKBUF_USE_BBLPM
 	if (bblpm_switch == 2) {

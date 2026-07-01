@@ -55,7 +55,9 @@
 static unsigned int g_ccorr_relay_value[DISP_CCORR_TOTAL];
 #define index_of_ccorr(module) ((module == DDP_COMPONENT_CCORR0) ? 0 : 1)
 
+#if !defined(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K10A_42_02_0B_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD)
 static bool bypass_color0, bypass_color1;
+#endif
 
 static atomic_t g_ccorr_is_clock_on[DISP_CCORR_TOTAL] = {
 	ATOMIC_INIT(0), ATOMIC_INIT(0) };
@@ -711,6 +713,9 @@ static int disp_ccorr_set_coef(
 	int ret = 0;
 	struct DRM_DISP_CCORR_COEF_T *ccorr, *old_ccorr;
 	int id = index_of_ccorr(comp->id);
+	struct mtk_drm_crtc *mtk_crtc;
+
+	mtk_crtc = comp->mtk_crtc;
 
 	ccorr = kmalloc(sizeof(struct DRM_DISP_CCORR_COEF_T), GFP_KERNEL);
 	if (ccorr == NULL) {
@@ -742,8 +747,11 @@ static int disp_ccorr_set_coef(
 				g_disp_ccorr_coef[id]->offset[2] =
 						(OFFSET_VALUE << 1) << 14;
 			}
-			DDPINFO("%s: Set module(%d) coef", __func__, id);
-			ret = disp_ccorr_write_coef_reg(comp, handle, 0);
+
+			if (mtk_crtc->enabled) {
+				DDPINFO("%s: Set module(%d) coef", __func__, id);
+				ret = disp_ccorr_write_coef_reg(comp, handle, 0);
+			}
 
 			mutex_unlock(&g_ccorr_global_lock);
 
@@ -812,9 +820,11 @@ int disp_ccorr_set_color_matrix(struct mtk_ddp_comp *comp,
 	bool need_refresh = false;
 	bool identity_matrix = true;
 	int id = index_of_ccorr(comp->id);
+#if !defined(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K10A_42_02_0B_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD)
 	struct mtk_drm_crtc *mtk_crtc = comp->mtk_crtc;
 	struct drm_crtc *crtc = &mtk_crtc->base;
 	struct mtk_drm_private *priv = crtc->dev->dev_private;
+#endif
 
 	if (handle == NULL) {
 		DDPPR_ERR("%s: cmdq can not be NULL\n", __func__);
@@ -846,7 +856,7 @@ int disp_ccorr_set_color_matrix(struct mtk_ddp_comp *comp,
 			}
 		}
 	}
-
+#if !defined(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K10A_42_02_0B_DSC_VDO) && !defined(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD)
 	// hint: 0: identity matrix; 1: arbitraty matrix
 	// fte_flag: true: gpu overlay && hwc not identity matrix
 	// arbitraty matrix maybe identity matrix or color transform matrix;
@@ -890,6 +900,7 @@ int disp_ccorr_set_color_matrix(struct mtk_ddp_comp *comp,
 			DDPINFO("%s, id is invalid!\n", __func__);
 		}
 	}
+#endif
 
 #if defined(CONFIG_MACH_MT6885) || defined(CONFIG_MACH_MT6873) \
 	|| defined(CONFIG_MACH_MT6893) || defined(CONFIG_MACH_MT6853) \
@@ -1098,9 +1109,10 @@ int mtk_drm_ioctl_support_color_matrix(struct drm_device *dev, void *data,
 	color_transform = data;
 
 #if defined(CONFIG_MACH_MT6885) || defined(CONFIG_MACH_MT6873) \
-	|| defined(CONFIG_MACH_MT6893) || defined(CONFIG_MACH_MT6853) \
-	|| defined(CONFIG_MACH_MT6833) || defined(CONFIG_MACH_MT6877) \
+	|| defined(CONFIG_MACH_MT6853) \
+	|| defined(CONFIG_MACH_MT6833)  \
 	 || defined(CONFIG_MACH_MT6781)
+
 	// Support matrix:
 	// AOSP is 4x3 matrix. Offset is located at 4th row (not zero)
 

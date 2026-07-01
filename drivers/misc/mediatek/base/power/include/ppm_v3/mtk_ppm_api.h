@@ -41,15 +41,24 @@ enum ppm_sysboost_user {
 	BOOST_BY_DEBUGD = 5,
 	BOOST_BY_DEBUGD_64,
 	BOOST_BY_BOOT_TIME_OPT,
-
+	BOOST_BY_XM_THERMAL,
 	NR_PPM_SYSBOOST_USER,
 };
 
+#if defined(CONFIG_MACH_MT6893)
+enum ppm_cluster_lkg {
+	CLUSTER_L_LKG = 0,
+	CLUSTER_B_LKG,
+	CLUSTER_BB_LKG,
+	TOTAL_CLUSTER_LKG,
+};
+#else
 enum ppm_cluster_lkg {
 	CLUSTER_LL_LKG = 0,
 	CLUSTER_L_LKG,
 	TOTAL_CLUSTER_LKG,
 };
+#endif
 
 /*==============================================================*/
 /* Data Structures                                              */

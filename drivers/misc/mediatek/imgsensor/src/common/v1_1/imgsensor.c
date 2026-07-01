@@ -529,6 +529,9 @@ static inline int imgsensor_check_is_alive(struct IMGSENSOR_SENSOR *psensor)
 	struct IMGSENSOR_SENSOR_INST *psensor_inst = &psensor->inst;
 
 	IMGSENSOR_PROFILE_INIT(&psensor_inst->profile_time);
+#ifdef _XIAOMI_AGATE_
+	psensor->mutil_camera = 0;
+#endif
 	ret = imgsensor_hw_power(&pimgsensor->hw,
 			psensor,
 			IMGSENSOR_HW_POWER_STATUS_ON);
@@ -1063,6 +1066,9 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 		break;
 
 	case SENSOR_FEATURE_OPEN:
+#ifdef _XIAOMI_AGATE_
+		psensor->mutil_camera = (*(MUINT32 *)pFeaturePara);
+#endif
 		ret = imgsensor_sensor_open(psensor);
 		break;
 
@@ -2488,6 +2494,7 @@ static void __exit imgsensor_exit(void)
 {
 	platform_driver_unregister(&gimgsensor_platform_driver);
 }
+#define NEED_LATER_INITCALL
 #ifdef NEED_LATE_INITCALL
 	late_initcall(imgsensor_init);
 #else

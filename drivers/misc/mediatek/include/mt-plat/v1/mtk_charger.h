@@ -20,30 +20,7 @@
 
 /* charger_manager notify charger_consumer */
 
-enum {
-	CHARGER_NOTIFY_EOC,
-	CHARGER_NOTIFY_START_CHARGING,
-	CHARGER_NOTIFY_STOP_CHARGING,
-	CHARGER_NOTIFY_ERROR,
-	CHARGER_NOTIFY_NORMAL,
-};
 
-enum {
-	MAIN_CHARGER = 0,
-	SLAVE_CHARGER = 1,
-	TOTAL_CHARGER = 2,
-	DIRECT_CHARGER = 10,
-	MAIN_DIVIDER_CHARGER = 20,
-	SLAVE_DIVIDER_CHARGER = 21,
-};
-
-struct charger_consumer {
-	struct device *dev;
-	void *cm;
-	struct notifier_block *pnb;
-	struct list_head list;
-	bool hv_charging_disabled;
-};
 
 /* ============================================= */
 /* The following are charger consumer interfaces */

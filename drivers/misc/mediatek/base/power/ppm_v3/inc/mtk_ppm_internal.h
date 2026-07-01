@@ -23,7 +23,7 @@ extern "C" {
 #include <linux/cpumask.h>
 #include <linux/topology.h>
 
-#include "mtk_ppm_api.h"
+#include "ppm_v3/mtk_ppm_api.h"
 #include "mtk_ppm_platform.h"
 #include "mtk_ppm_ipi.h"
 

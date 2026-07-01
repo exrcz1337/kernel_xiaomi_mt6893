@@ -25,6 +25,29 @@
  */
 #define EXT_SPK_AMP_W_NAME "Ext_Speaker_Amp"
 
+#ifdef CONFIG_SND_SOC_CS35L41
+#define CS35L41_SPEAKER_NAME "speaker_amp.7-0040"
+#define CS35L41_RECEIVER_NAME "speaker_amp.7-0042"
+static struct snd_soc_codec_conf cs35l41_codec_conf[] = {
+	{
+		.dev_name	= CS35L41_RECEIVER_NAME,
+		.name_prefix	= "RCV",
+	},
+};
+extern int get_type_c_hph_direction(void);
+static struct snd_soc_dai_link_component cs35l41_dai_link_component[] =
+{
+	{
+		.name= CS35L41_SPEAKER_NAME,
+		.dai_name="cs35l41-pcm",
+	},
+	{
+		.name= CS35L41_RECEIVER_NAME,
+		.dai_name="cs35l41-pcm",
+	},
+};
+#endif
+
 #ifdef CONFIG_SND_SOC_CS35L43
 static struct snd_soc_dai_link_component cs35l43_codec[] = {
 	{
@@ -52,7 +75,8 @@ static struct snd_soc_codec_conf *mt_prince_codec_conf;
 static const char *const mt6885_spk_type_str[] = {MTK_SPK_NOT_SMARTPA_STR,
 						  MTK_SPK_RICHTEK_RT5509_STR,
 						  MTK_SPK_MEDIATEK_MT6660_STR,
-						  MTK_SPK_NXP_TFA98XX_STR
+						  MTK_SPK_NXP_TFA98XX_STR,
+						  MTK_SPK_CS_CS35L41_STR
 						  };
 static const char *const
 	mt6885_spk_i2s_type_str[] = {MTK_SPK_I2S_0_STR,
@@ -92,6 +116,15 @@ static int mt6885_spk_i2s_out_type_get(struct snd_kcontrol *kcontrol,
 	pr_debug("%s() = %d\n", __func__, idx);
 	ucontrol->value.integer.value[0] = idx;
 	return 0;
+}
+
+static int type_c_hph_direction_get (struct snd_kcontrol *kcontrol,
+                                 struct snd_ctl_elem_value *ucontrol)
+{
+    int direction = get_type_c_hph_direction();
+    pr_debug("%s() = %d\n", __func__, direction);
+    ucontrol->value.integer.value[0] = direction;
+    return 0;
 }
 
 static int mt6885_spk_i2s_in_type_get(struct snd_kcontrol *kcontrol,
@@ -145,6 +178,8 @@ static const struct snd_kcontrol_new mt6885_mt6359_controls[] = {
 		     mt6885_spk_i2s_out_type_get, NULL),
 	SOC_ENUM_EXT("MTK_SPK_I2S_IN_TYPE_GET", mt6885_spk_type_enum[1],
 		     mt6885_spk_i2s_in_type_get, NULL),
+        SOC_SINGLE_EXT("USB Headset Direction", SND_SOC_NOPM, 0, 1, 0,
+                     type_c_hph_direction_get, NULL),
 };
 
 /*
@@ -1198,7 +1233,10 @@ static struct snd_soc_card mt6885_mt6359_soc_card = {
 	.owner = THIS_MODULE,
 	.dai_link = mt6885_mt6359_dai_links,
 	.num_links = ARRAY_SIZE(mt6885_mt6359_dai_links),
-
+#ifdef CONFIG_SND_SOC_CS35L41
+	.codec_conf = cs35l41_codec_conf,
+	.num_configs = ARRAY_SIZE(cs35l41_codec_conf),
+#endif
 	.controls = mt6885_mt6359_controls,
 	.num_controls = ARRAY_SIZE(mt6885_mt6359_controls),
 	.dapm_widgets = mt6885_mt6359_widgets,
@@ -1210,7 +1248,8 @@ static struct snd_soc_card mt6885_mt6359_soc_card = {
 static int mt6885_mt6359_dev_probe(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = &mt6885_mt6359_soc_card;
-	struct device_node *platform_node, *codec_node, *spk_node, *dsp_node;
+	//struct device_node *platform_node, *codec_node, *spk_node, *dsp_node;
+	struct device_node *platform_node, *codec_node, __attribute__((unused)) *spk_node, *dsp_node;
 	struct snd_soc_dai_link *spk_out_dai_link, *spk_iv_dai_link;
 	int ret, i;
 	int spk_out_dai_link_idx, spk_iv_dai_link_idx;
@@ -1232,6 +1271,12 @@ static int mt6885_mt6359_dev_probe(struct platform_device *pdev)
 	spk_iv_dai_link = &mt6885_mt6359_dai_links[spk_iv_dai_link_idx];
 	if (!spk_out_dai_link->codec_dai_name &&
 	    !spk_iv_dai_link->codec_dai_name) {
+#ifdef CONFIG_SND_SOC_CS35L41
+		spk_out_dai_link->codecs = cs35l41_dai_link_component;
+		spk_out_dai_link->num_codecs = ARRAY_SIZE(cs35l41_dai_link_component);
+		spk_iv_dai_link->codecs = cs35l41_dai_link_component;
+		spk_iv_dai_link->num_codecs = ARRAY_SIZE(cs35l41_dai_link_component);
+#else
 		spk_node = of_get_child_by_name(pdev->dev.of_node,
 					"mediatek,speaker-codec");
 		if (!spk_node) {
@@ -1253,6 +1298,7 @@ static int mt6885_mt6359_dev_probe(struct platform_device *pdev)
 				"i2s in get_dai_link_codecs fail\n");
 			return -EINVAL;
 		}
+#endif
 	}
 
 	platform_node = of_parse_phandle(pdev->dev.of_node,
@@ -1292,6 +1338,8 @@ static int mt6885_mt6359_dev_probe(struct platform_device *pdev)
 		    i == spk_out_dai_link_idx ||
 		    i == spk_iv_dai_link_idx ||
 		    mt6885_mt6359_dai_links[i].num_codecs)
+			continue;
+		if (mt6885_mt6359_dai_links[i].codecs)
 			continue;
 		mt6885_mt6359_dai_links[i].codec_of_node = codec_node;
 	}

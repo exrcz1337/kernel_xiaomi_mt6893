@@ -43,3 +43,5 @@ main2af-y  += common/lc898217afb/LC898217AFB.o
 main2af-y  += common/lc898217afc/LC898217AFC.o
 main2af-y  += common/dw9718taf/DW9718TAF.o
 main2af-y  += common/gt9772af/GT9772AF.o
+main2af-y  += common/dw9800waf/DW9800WAF.o
+main2af-y  += common/dw9800vaf/DW9800VAF.o

@@ -127,3 +127,8 @@ config MTK_SOCINFO
 
 endmenu
 
+config XIAOMI_HWID
+	bool "Xiaomi HWID interface"
+	default y
+	help
+	  Say yes to add support for Xiaomi HWID function interfaces.

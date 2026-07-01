@@ -327,6 +327,8 @@ int hf_manager_create(struct hf_device *device)
 	for (i = 0; i < device->support_size; ++i) {
 		sensor_type = device->support_list[i].sensor_type;
 		gain = device->support_list[i].gain;
+		printk("liusongnian Device:%s register , %u\n",
+				device->dev_name, sensor_type);
 		if (unlikely(sensor_type >= SENSOR_TYPE_SENSOR_MAX || !gain)) {
 			pr_err("Device:%s register failed, %u invalid gain\n",
 				device->dev_name, sensor_type);

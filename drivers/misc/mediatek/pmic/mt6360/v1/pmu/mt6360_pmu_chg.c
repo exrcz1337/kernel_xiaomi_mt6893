@@ -164,6 +164,7 @@ static const struct mt6360_chg_platform_data def_platform_data = {
 	.aicc_once = true,
 	.post_aicc = true,
 	.batoc_notify = false,
+	.en_eoc = true,
 	.chg_name = "primary_chg",
 };
 
@@ -356,6 +357,7 @@ static int mt6360_enable_wdt(struct mt6360_pmu_chg_info *mpci, bool en)
 					  en ? 0xff : 0);
 }
 
+/*
 static int mt6360_enable_otg_wdt(struct mt6360_pmu_chg_info *mpci, bool en)
 {
 	struct mt6360_chg_platform_data *pdata = dev_get_platdata(mpci->dev);
@@ -368,6 +370,7 @@ static int mt6360_enable_otg_wdt(struct mt6360_pmu_chg_info *mpci, bool en)
 					  MT6360_MASK_CHG_WDT_EN,
 					  en ? 0xff : 0);
 }
+*/
 
 static inline int mt6360_get_chrdet_ext_stat(struct mt6360_pmu_chg_info *mpci,
 					  bool *pwr_rdy)
@@ -524,7 +527,6 @@ bool is_usb_rdy(struct device *dev)
 		dev_info(dev, "gadget-ready=%d\n", ready);
 	} else
 		dev_info(dev, "usb node missing or invalid\n");
-
 	return ready;
 }
 #endif
@@ -554,8 +556,9 @@ static int __mt6360_enable_usbchgen(struct mt6360_pmu_chg_info *mpci, bool en)
 #if defined(CONFIG_MACH_MT6877) || defined(CONFIG_MACH_MT6893) \
 	|| defined(CONFIG_MACH_MT6885) || defined(CONFIG_MACH_MT6785) \
 	|| defined(CONFIG_MACH_MT6853) || defined(CONFIG_MACH_MT6873)
-			if (is_usb_rdy(mpci->dev))
+			if (is_usb_rdy(mpci->dev)){
 				break;
+			}
 #else
 			if (is_usb_rdy())
 				break;
@@ -884,11 +887,21 @@ out:
 	ret = mt6360_pmu_reg_update_bits(mpci->mpi,
 					 MT6360_PMU_CHG_CTRL2,
 					 MT6360_MASK_CHG_EN, en ? 0xff : 0);
+	ret = mt6360_pmu_reg_update_bits(mpci->mpi,
+					MT6360_PMU_CHG_CTRL2,
+					MT6360_MASK_BYPASS_MODE, 0x0);
 	if (ret < 0)
 		dev_notice(mpci->dev, "%s: fail, en = %d\n", __func__, en);
 vsys_wkard_fail:
 	mutex_unlock(&mpci->ichg_lock);
 	return ret;
+}
+
+static int mt6360_is_enable(struct charger_device *chg_dev, bool *enable)
+{
+	struct mt6360_pmu_chg_info *mpci = charger_get_data(chg_dev);
+
+	return mt6360_is_charger_enabled(mpci, enable);
 }
 
 static int mt6360_get_min_ichg(struct charger_device *chg_dev, u32 *uA)
@@ -1539,14 +1552,9 @@ static int mt6360_set_otg_current_limit(struct charger_device *chg_dev,
 static int mt6360_enable_otg(struct charger_device *chg_dev, bool en)
 {
 	struct mt6360_pmu_chg_info *mpci = charger_get_data(chg_dev);
-	int ret = 0;
 
 	dev_dbg(mpci->dev, "%s: en = %d\n", __func__, en);
-	ret = mt6360_enable_otg_wdt(mpci, en ? true : false);
-	if (ret < 0) {
-		dev_err(mpci->dev, "%s: set wdt fail, en = %d\n", __func__, en);
-		return ret;
-	}
+
 	return mt6360_pmu_reg_update_bits(mpci->mpi, MT6360_PMU_CHG_CTRL1,
 					  MT6360_MASK_OPA_MODE, en ? 0xff : 0);
 }
@@ -1987,6 +1995,7 @@ static const struct charger_ops mt6360_chg_ops = {
 	.plug_out = mt6360_plug_out,
 	/* enable */
 	.enable = mt6360_enable,
+	.is_enabled = mt6360_is_enable,
 	/* charging current */
 	.set_charging_current = mt6360_set_ichg,
 	.get_charging_current = mt6360_get_ichg,
@@ -2635,14 +2644,16 @@ static const struct mt6360_pdata_prop mt6360_pdata_props[] = {
 	MT6360_PDATA_VALPROP(ircmp_vclamp, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL18, 0, 0x07,
 			     mt6360_trans_ircmp_vclamp_sel, 0),
-#if 0
 	MT6360_PDATA_VALPROP(en_te, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL2, 4, 0x10, NULL, 0),
+#if 0
 	MT6360_PDATA_VALPROP(en_wdt, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL13, 7, 0x80, NULL, 0),
 #endif
 	MT6360_PDATA_VALPROP(aicc_once, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL14, 0, 0x04, NULL, 0),
+	MT6360_PDATA_VALPROP(en_eoc, struct mt6360_chg_platform_data,
+			     MT6360_PMU_CHG_CTRL9, 3, 0x08, NULL, 0),
 };
 
 static int mt6360_chg_apply_pdata(struct mt6360_pmu_chg_info *mpci,
@@ -2674,6 +2685,7 @@ static const struct mt6360_val_prop mt6360_val_props[] = {
 	MT6360_DT_VALPROP(aicc_once, struct mt6360_chg_platform_data),
 	MT6360_DT_VALPROP(post_aicc, struct mt6360_chg_platform_data),
 	MT6360_DT_VALPROP(batoc_notify, struct mt6360_chg_platform_data),
+	MT6360_DT_VALPROP(en_eoc, struct mt6360_chg_platform_data),
 };
 
 static int mt6360_chg_parse_dt_data(struct device *dev,

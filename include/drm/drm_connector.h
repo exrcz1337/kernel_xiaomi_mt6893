@@ -39,7 +39,6 @@ struct drm_encoder;
 struct drm_property;
 struct drm_property_blob;
 struct drm_printer;
-struct drm_panel;
 struct edid;
 
 enum drm_connector_force {
@@ -1199,6 +1198,11 @@ struct drm_connector {
 	/** @tile_h_size: horizontal size of this tile. */
 	/** @tile_v_size: vertical size of this tile. */
 	uint16_t tile_h_size, tile_v_size;
+
+	uint brightness_clone;
+	uint dc_status;
+	uint8_t panel_id;
+	int panel_event;
 
 	/**
 	 * @free_node:

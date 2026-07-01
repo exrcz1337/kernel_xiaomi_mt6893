@@ -9,6 +9,8 @@ obj-$(CONFIG_LEDS_MTK_I2C)		+= leds-mtk-i2c.o
 else
 ifeq (y, $(filter y, $(CONFIG_MACH_MT6765) $(CONFIG_MACH_MT6761)))
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/leds/mt6765
+else ifeq (y, $(filter y, $(CONFIG_MACH_MT6885) $(CONFIG_MACH_MT6893)))
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/leds/mt6885
 else ifeq (y, $(filter y, $(CONFIG_MACH_MT6853) $(CONFIG_MACH_MT6833)))
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/leds/mt6853
 else
@@ -22,6 +24,8 @@ obj-$(CONFIG_MTK_LEDS) += mtk_leds_drv.o
 
 ifeq (y, $(filter y, $(CONFIG_MACH_MT6765) $(CONFIG_MACH_MT6761)))
 obj-y += $(subst ",,mt6765)/
+else ifeq (y, $(filter y, $(CONFIG_MACH_MT6885) $(CONFIG_MACH_MT6893)))
+obj-y += $(subst ",,mt6885)/
 else ifeq (y, $(filter y, $(CONFIG_MACH_MT6853) $(CONFIG_MACH_MT6833)))
 obj-y += $(subst ",,mt6853)/
 else

@@ -11,6 +11,75 @@
 
 /* Legacy design */
 struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
+#if defined(AGATES5KHM2_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_AGATES5KHM2_MIPI_RAW,
+		{
+			{AFVDD, Vol_2800, 5},
+			{RST, Vol_Low, 1},
+			{DVDD, Vol_1100, 1},
+			{DOVDD, Vol_1800, 1},
+			{AVDD, Vol_2800, 1},
+			{RST, Vol_High, 2},
+			{SensorMCLK, Vol_High, 13},
+		},
+	},
+#endif
+#if defined(AGATEOV64B40_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_AGATEOV64B40_MIPI_RAW,
+		{
+			{AFVDD, Vol_2800, 5},
+			{RST, Vol_Low, 2},
+			{DOVDD, Vol_1800, 0},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1100, 2},
+			{SensorMCLK, Vol_High, 2},
+			{RST, Vol_High, 5}
+		},
+	},
+#endif
+#if defined(AGATEOV16A1Q_MIPI_RAW)
+        {
+                SENSOR_DRVNAME_AGATEOV16A1Q_MIPI_RAW,
+                {
+                        {RST, Vol_Low, 2},
+                        {DOVDD, Vol_1800, 0},
+                        {DVDD, Vol_1200, 0},
+                        {AVDD, Vol_2800, 2},
+                        {SensorMCLK, Vol_High, 2},
+                        {RST, Vol_High, 5},
+                },
+        },
+#endif
+#if defined(AGATES5K5E9_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_AGATES5K5E9_MIPI_RAW,
+		{
+			{RST, Vol_Low, 2},
+			{AFVDD, Vol_2800, 1},
+			{AVDD, Vol_2800, 1},
+			{DVDD, Vol_1200, 1},
+			{DOVDD, Vol_1800, 0},
+			{SensorMCLK, Vol_High, 1},
+			{RST, Vol_High, 5}
+                },
+        },
+
+#endif
+#if defined(AGATEIMX355_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_AGATEIMX355_MIPI_RAW,
+		{
+			{RST, Vol_Low, 2},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1200, 0},
+			{DOVDD, Vol_1800, 2},
+			{SensorMCLK, Vol_High, 3},
+			{RST, Vol_High, 5}
+		},
+	},
+#endif
 #if defined(IMX766_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_IMX766_MIPI_RAW,

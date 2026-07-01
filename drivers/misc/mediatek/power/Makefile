@@ -10,10 +10,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include
+ifeq ($(CONFIG_AGATE_CHARGER),y)
+subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek/battery_agate
+subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek/charger_agate
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_agate/inc
+else
 subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek/battery
 subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek/charger
-subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc/inc
+endif
 subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek
 subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek/misc
 

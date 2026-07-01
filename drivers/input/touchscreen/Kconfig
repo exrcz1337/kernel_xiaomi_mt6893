@@ -15,6 +15,10 @@ source "drivers/input/touchscreen/NT36672C/Kconfig"
 
 if INPUT_TOUCHSCREEN
 
+source "drivers/input/touchscreen/focaltech_spi/Kconfig"
+source "drivers/input/touchscreen/xiaomi/Kconfig"
+source "drivers/input/touchscreen/fts_spi/Kconfig"
+
 config TOUCHSCREEN_PROPERTIES
 	def_tristate INPUT
 	depends on INPUT

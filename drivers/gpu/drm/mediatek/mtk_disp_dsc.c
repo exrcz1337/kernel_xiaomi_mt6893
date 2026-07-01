@@ -340,7 +340,7 @@ static void mtk_dsc1_config(struct mtk_ddp_comp *comp,
 	unsigned int init_delay_height;
 	struct mtk_panel_dsc_params *dsc_params;
 
-	DDPFUNC();
+	DDPDBG("[%s line:%d]\n", __func__, __LINE__);
 	if (!comp->mtk_crtc || (!comp->mtk_crtc->panel_ext
 				&& !comp->mtk_crtc->is_dual_pipe))
 		return;
@@ -715,7 +715,7 @@ static void mtk_dsc_config(struct mtk_ddp_comp *comp,
 		mtk_ddp_write_mask(comp, reg_val,
 					DISP_REG_DSC_MODE, 0xFFFF, handle);
 
-		DDPMSG("%s, init delay:%d\n",
+		DDPDBG("%s, init delay:%d\n",
 			mtk_dump_comp_str(comp), reg_val);
 
 		mtk_ddp_write_relaxed(comp,
