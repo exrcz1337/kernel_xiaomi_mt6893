@@ -159,8 +159,8 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 			kalSetTaskUtilMinPct(prGlueInfo->u4RxThreadPid, 100);
 			kalSetTaskUtilMinPct(prGlueInfo->u4HifThreadPid, 100);
 			kalSetRpsMap(prGlueInfo, CPU_BIG_CORE);
-			update_userlimit_cpu_freq(CPU_KIR_WIFI,
-				u4ClusterNum, freq_to_set);
+			//update_userlimit_cpu_freq(CPU_KIR_WIFI,
+			//	u4ClusterNum, freq_to_set);
 
 			KAL_ACQUIRE_MUTEX(prAdapter, MUTEX_BOOST_CPU);
 			pr_info("Max Dram Freq start\n");
@@ -180,8 +180,8 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 			kalSetTaskUtilMinPct(prGlueInfo->u4RxThreadPid, 0);
 			kalSetTaskUtilMinPct(prGlueInfo->u4HifThreadPid, 0);
 			kalSetRpsMap(prGlueInfo, CPU_LITTLE_CORE);
-			update_userlimit_cpu_freq(CPU_KIR_WIFI,
-				u4ClusterNum, freq_to_set);
+			//update_userlimit_cpu_freq(CPU_KIR_WIFI,
+			//	u4ClusterNum, freq_to_set);
 
 			KAL_ACQUIRE_MUTEX(prAdapter, MUTEX_BOOST_CPU);
 			pr_info("Max Dram Freq end\n");

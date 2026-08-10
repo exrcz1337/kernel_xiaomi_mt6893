@@ -192,8 +192,8 @@ void kalSetCpuFreq(IN int32_t freq)
 		freq_to_set[i].max = freq;
 	}
 
-	update_userlimit_cpu_freq(CPU_KIR_WIFI,
-		u4ClusterNum, freq_to_set);
+	//update_userlimit_cpu_freq(CPU_KIR_WIFI,
+	//	u4ClusterNum, freq_to_set);
 
 	kfree(freq_to_set);
 #endif
