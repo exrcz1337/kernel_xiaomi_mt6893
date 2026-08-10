@@ -3667,6 +3667,7 @@ page_owner=on loop.max_part=7";
 			};
 
 		};
+	};
 
 	tboard_thermistor4: thermal-sensor4 {
 		compatible = "mediatek,mtboard-thermistor4";
