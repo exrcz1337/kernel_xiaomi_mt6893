@@ -62,6 +62,7 @@ mediatek-drm-y += \
 		  mi_disp/mi_disp_esd_check.o \
 		  mi_disp/mi_dsi_panel_count.o \
 		  mi_disp/mi_drm_crtc.o \
+		  mi_disp/mi_hwconf_manager.o
 
 ifeq ($(CONFIG_DRM_MEDIATEK_DEBUG_FS),y)
 mediatek-drm-y += mtk_drm_debugfs.o

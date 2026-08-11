@@ -13,7 +13,7 @@
  */
 
 #include "linux/notifier.h"
-#include <asm/hwconf_manager.h>
+#include "mi_hwconf_manager.h"
 #include "mi_dsi_panel_count.h"
 
 #define HWCONPONENT_NAME "display"

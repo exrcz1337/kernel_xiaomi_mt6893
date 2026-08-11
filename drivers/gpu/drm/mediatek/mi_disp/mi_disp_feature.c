@@ -35,6 +35,9 @@
 #include "mi_disp_file.h"
 #include "mi_disp_print.h"
 #include "mi_disp_sysfs.h"
+#ifdef CONFIG_MI_HWCONF_MANAGER
+#include "mi_hwconf_manager.h"
+#endif
 
 struct disp_feature *g_disp_feature = NULL;
 
@@ -611,6 +614,12 @@ int mi_disp_feature_init(void)
 
 	g_disp_feature = df;
 
+#ifdef CONFIG_MI_HWCONF_MANAGER
+	if (hwconf_init() < 0) {
+		DISP_ERROR("can not initialize hwconf.\n");
+	}
+#endif
+
 	pr_info("mi disp_feature driver initialized!\n");
 
 	return 0;
@@ -625,6 +634,10 @@ err_exit:
 
 void mi_disp_feature_exit(void)
 {
+#ifdef CONFIG_MI_HWCONF_MANAGER
+	hwconf_exit();
+#endif
+
 	if (!g_disp_feature)
 		return;
 	device_destroy(g_disp_feature->class, g_disp_feature->dev_id);

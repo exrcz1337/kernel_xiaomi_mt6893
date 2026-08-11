@@ -18,7 +18,8 @@
 #include <linux/debugfs.h>
 #include <linux/crypto.h>
 #include <asm/setup.h>
-#include <asm/hwconf_manager.h>
+
+#include "mi_hwconf_manager.h"
 
 #define MAX_LEN_STR 256
 char *print_buf;
@@ -591,7 +592,7 @@ int hw_monitor_notifier_unregister(struct notifier_block *nb)
 }
 EXPORT_SYMBOL(hw_monitor_notifier_unregister);
 
-static int __init hwconf_init(void)
+int hwconf_init(void)
 {
 	int ret = -ENOMEM;
 
@@ -645,7 +646,7 @@ print_buf_fail:
 	return ret;
 }
 
-static void __exit hwconf_exit(void)
+void hwconf_exit(void)
 {
 	hw_item_free(info_manager->hw_monitor);
 
@@ -657,6 +658,3 @@ static void __exit hwconf_exit(void)
 	kfree(print_buf);
 	kfree(info_manager);
 }
-
-core_initcall(hwconf_init);
-module_exit(hwconf_exit);
