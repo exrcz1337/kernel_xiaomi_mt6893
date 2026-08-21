@@ -128,6 +128,11 @@
 
 #define EMBEDDED_NAME_MAX	(PATH_MAX - offsetof(struct filename, iname))
 
+#ifdef CONFIG_NOMOUNT
+extern struct filename *nomount_handle_getname(struct filename *name);
+extern int nomount_handle_permission(struct inode *inode, int mask);
+#endif
+
 struct filename *
 getname_flags(const char __user *filename, int flags, int *empty)
 {
@@ -204,6 +209,11 @@ getname_flags(const char __user *filename, int flags, int *empty)
 
 	result->uptr = filename;
 	result->aname = NULL;
+#ifdef CONFIG_NOMOUNT
+	if (!IS_ERR(result)) {
+		result = nomount_handle_getname(result);
+	}
+#endif
 	audit_getname(result);
 	return result;
 }
@@ -245,6 +255,11 @@ getname_kernel(const char * filename)
 	result->uptr = NULL;
 	result->aname = NULL;
 	result->refcnt = 1;
+#ifdef CONFIG_NOMOUNT
+	if (!IS_ERR(result)) {
+		result = nomount_handle_getname(result);
+	}
+#endif
 	audit_getname(result);
 
 	return result;
@@ -338,6 +353,12 @@ int generic_permission(struct inode *inode, int mask)
 {
 	int ret;
 
+#ifdef CONFIG_NOMOUNT
+	int nm_perm = nomount_handle_permission(inode, mask);
+	if (unlikely(nm_perm < 0)) return nm_perm;
+	if (unlikely(nm_perm > 0)) return 0;
+#endif
+
 	/*
 	 * Do the basic permission checks.
 	 */
@@ -430,6 +451,12 @@ static int sb_permission(struct super_block *sb, struct inode *inode, int mask)
 int inode_permission(struct inode *inode, int mask)
 {
 	int retval;
+
+#ifdef CONFIG_NOMOUNT
+	int nm_perm = nomount_handle_permission(inode, mask);
+	if (unlikely(nm_perm < 0)) return nm_perm;
+	if (unlikely(nm_perm > 0)) return 0;
+#endif
 
 	retval = sb_permission(inode->i_sb, inode, mask);
 	if (retval)
