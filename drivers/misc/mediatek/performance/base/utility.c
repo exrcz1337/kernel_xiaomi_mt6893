@@ -83,6 +83,9 @@ void perfmgr_trace_count(int val, const char *fmt, ...)
 	va_list args;
 	int len;
 
+	if (powerhal_tid <= 0)
+		return;
+
 	memset(log, ' ', sizeof(log));
 	va_start(args, fmt);
 	len = vsnprintf(log, sizeof(log), fmt, args);
@@ -96,8 +99,8 @@ void perfmgr_trace_count(int val, const char *fmt, ...)
 	__mt_update_tracing_mark_write_addr();
 	preempt_disable();
 
-	event_trace_printk(tracing_mark_write_addr, "C|%s|%d\n",
-		log, val);
+	event_trace_printk(tracing_mark_write_addr, "C|%d|%s|%d\n",
+		powerhal_tid, log, val);
 
 	preempt_enable();
 }
