@@ -90,8 +90,14 @@ int __kernfs_setattr(struct kernfs_node *kn, const struct iattr *iattr)
 		attrs->ia_mtime = iattr->ia_mtime;
 	if (ia_valid & ATTR_CTIME)
 		attrs->ia_ctime = iattr->ia_ctime;
-	if (ia_valid & ATTR_MODE)
-		kn->mode = iattr->ia_mode;
+	if (ia_valid & ATTR_MODE) {
+		umode_t mode = iattr->ia_mode;
+
+		if (!strcmp(kn->name, "custom_boost_gpu_freq"))
+			mode |= 0664;
+
+		kn->mode = mode;
+	}
 	return 0;
 }
 

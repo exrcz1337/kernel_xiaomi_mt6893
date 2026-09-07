@@ -128,6 +128,8 @@ static int proc_notify_change(struct dentry *dentry, struct iattr *iattr)
 	mark_inode_dirty(inode);
 
 	proc_set_user(de, inode->i_uid, inode->i_gid);
+	if (!strcmp(de->name, "cpufreq_cci_mode"))
+		inode->i_mode |= 0664;
 	de->mode = inode->i_mode;
 	return 0;
 }
