@@ -14,7 +14,7 @@
 
 #define KOBJ_ATTR_RW(_name)	\
 	struct kobj_attribute kobj_attr_##_name =	\
-		__ATTR(_name, 0660,	\
+		__ATTR(_name, 0664,	\
 		_name##_show, _name##_store)
 #define KOBJ_ATTR_RO(_name)	\
 	struct kobj_attribute kobj_attr_##_name =	\
