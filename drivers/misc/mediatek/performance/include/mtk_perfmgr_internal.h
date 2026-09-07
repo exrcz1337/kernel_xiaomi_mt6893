@@ -49,6 +49,7 @@ static const struct file_operations perfmgr_ ## name ## _proc_fops = { \
 #define LOG_BUF_SIZE (128)
 
 extern int topo_cluster_num;
+extern int powerhal_tid;
 extern char *perfmgr_copy_from_user_for_proc(const char __user *buffer,
 					size_t count);
 

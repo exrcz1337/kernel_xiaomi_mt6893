@@ -321,22 +321,6 @@ static void ppm_main_update_limit(struct ppm_policy_data *p,
 		c_limit->min_cpufreq_idx =
 			c_limit->max_cpufreq_idx = p_limit->max_cpufreq_idx;
 		break;
-	/* fix freq and core */
-	case PPM_POLICY_UT:
-		if (p_limit->min_cpufreq_idx == p_limit->max_cpufreq_idx) {
-			c_limit->has_advise_freq = true;
-			c_limit->advise_cpufreq_idx = p_limit->max_cpufreq_idx;
-			c_limit->min_cpufreq_idx = p_limit->max_cpufreq_idx;
-			c_limit->max_cpufreq_idx = p_limit->max_cpufreq_idx;
-		}
-
-		if (p_limit->min_cpu_core == p_limit->max_cpu_core) {
-			c_limit->has_advise_core = true;
-			c_limit->advise_cpu_core = p_limit->max_cpu_core;
-			c_limit->min_cpu_core = p_limit->max_cpu_core;
-			c_limit->max_cpu_core = p_limit->max_cpu_core;
-		}
-		break;
 	default:
 		/* out of range! use policy's min/max cpufreq idx setting */
 		if (c_limit->min_cpufreq_idx <  p_limit->max_cpufreq_idx ||
@@ -433,11 +417,10 @@ static void ppm_main_calc_new_limit(void)
 					&c_req->cpu_limit[i],
 					&pos->req.limit[i]);
 
-				/* calculate max freq limit except userlimit */
-				if (pos->policy != PPM_POLICY_USER_LIMIT)
-					max_freq_limit[i] = MAX(
-					max_freq_limit[i],
-					pos->req.limit[i].max_cpufreq_idx);
+				/* calculate max freq limit */
+				max_freq_limit[i] = MAX(
+				max_freq_limit[i],
+				pos->req.limit[i].max_cpufreq_idx);
 			}
 
 			is_ptp_activate = (pos->policy == PPM_POLICY_PTPOD)
