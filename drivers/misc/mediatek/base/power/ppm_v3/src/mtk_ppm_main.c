@@ -321,6 +321,22 @@ static void ppm_main_update_limit(struct ppm_policy_data *p,
 		c_limit->min_cpufreq_idx =
 			c_limit->max_cpufreq_idx = p_limit->max_cpufreq_idx;
 		break;
+	/* fix freq and core */
+	case PPM_POLICY_UT:
+		if (p_limit->min_cpufreq_idx == p_limit->max_cpufreq_idx) {
+			c_limit->has_advise_freq = true;
+			c_limit->advise_cpufreq_idx = p_limit->max_cpufreq_idx;
+			c_limit->min_cpufreq_idx = p_limit->max_cpufreq_idx;
+			c_limit->max_cpufreq_idx = p_limit->max_cpufreq_idx;
+		}
+
+		if (p_limit->min_cpu_core == p_limit->max_cpu_core) {
+			c_limit->has_advise_core = true;
+			c_limit->advise_cpu_core = p_limit->max_cpu_core;
+			c_limit->min_cpu_core = p_limit->max_cpu_core;
+			c_limit->max_cpu_core = p_limit->max_cpu_core;
+		}
+		break;
 	default:
 		/* out of range! use policy's min/max cpufreq idx setting */
 		if (c_limit->min_cpufreq_idx <  p_limit->max_cpufreq_idx ||
@@ -417,10 +433,11 @@ static void ppm_main_calc_new_limit(void)
 					&c_req->cpu_limit[i],
 					&pos->req.limit[i]);
 
-				/* calculate max freq limit */
-				max_freq_limit[i] = MAX(
-				max_freq_limit[i],
-				pos->req.limit[i].max_cpufreq_idx);
+				/* calculate max freq limit except userlimit */
+				if (pos->policy != PPM_POLICY_USER_LIMIT)
+					max_freq_limit[i] = MAX(
+					max_freq_limit[i],
+					pos->req.limit[i].max_cpufreq_idx);
 			}
 
 			is_ptp_activate = (pos->policy == PPM_POLICY_PTPOD)
@@ -782,10 +799,6 @@ int mt_ppm_main(void)
 					log_print = true;
 					if (ppm_main_info.cluster_info[i].max_freq_req != NULL &&
 					ppm_main_info.cluster_info[i].min_freq_req != NULL) {
-						pr_info("ppm update cpufreq limit ,cluster %d, min freq %d ------max freq %d\n",
-							i,
-	ppm_main_info.cluster_info[i].dvfs_tbl[c_req->cpu_limit[i].min_cpufreq_idx].frequency,
-	ppm_main_info.cluster_info[i].dvfs_tbl[c_req->cpu_limit[i].max_cpufreq_idx].frequency);
 						freq_qos_update_request(
 							ppm_main_info.cluster_info[i].max_freq_req,
 	ppm_main_info.cluster_info[i].dvfs_tbl[c_req->cpu_limit[i].max_cpufreq_idx].frequency);
@@ -804,6 +817,10 @@ int mt_ppm_main(void)
 					ppm_main_log_print(policy_mask,
 						p->min_power_budget,
 						c_req->root_cluster, buf);
+				if (!p->client_info[to].limit_cb)
+					goto nofity_end;
+
+				p->client_info[to].limit_cb(*c_req);
 				delta = ktime_to_us(
 					ktime_sub(ktime_get(), now));
 				ppm_profile_update_client_exec_time(to, delta);
@@ -840,10 +857,9 @@ int mt_ppm_main(void)
 		/* send request to client */
 		for_each_ppm_clients(i) {
 			now = ktime_get();
-			if (ppm_main_info.client_info[i].limit_cb) {
-				if (i != PPM_CLIENT_DVFS)
-					ppm_main_info.client_info[i].limit_cb(*c_req);
-			} else if (i == PPM_CLIENT_HOTPLUG)
+			if (ppm_main_info.client_info[i].limit_cb)
+				ppm_main_info.client_info[i].limit_cb(*c_req);
+			else if (i == PPM_CLIENT_HOTPLUG)
 				force_update_to_hps = 1;
 			delta = ktime_to_us(ktime_sub(ktime_get(), now));
 			ppm_profile_update_client_exec_time(i, delta);
