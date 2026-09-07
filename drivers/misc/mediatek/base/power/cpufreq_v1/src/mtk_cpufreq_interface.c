@@ -765,7 +765,7 @@ int cpufreq_procfs_init(void)
 
 	for (i = 0; i < ARRAY_SIZE(entries); i++) {
 		if (!proc_create
-		    (entries[i].name, 0664, dir, entries[i].fops))
+		    (entries[i].name, 0666, dir, entries[i].fops))
 			tag_pr_notice("%s(), create /proc/cpufreq/%s failed\n",
 				__func__, entries[i].name);
 	}
