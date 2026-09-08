@@ -588,7 +588,7 @@ enum apdo_max_power {
 };
 
 #define WIRE_SUPER_POWER_MAX	50
-extern mtk_super_charge;
+extern bool mtk_super_charge;
 int get_quick_charge_type(struct mt_charger *mtk_chg)
 {
 	int i = 0, rc, chg_type;
