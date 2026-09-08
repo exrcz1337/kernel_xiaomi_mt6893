@@ -472,10 +472,10 @@ TEEC_Result TEEC_OpenSession(struct TEEC_Context *ctx,
 			struct TEEC_Operation *operation,
 			uint32_t *ret_origin)
 {
-	uint64_t buf[(sizeof(struct tee_ioctl_open_session_arg) +
+	const size_t buf_len = sizeof(struct tee_ioctl_open_session_arg) +
 			TEEC_CONFIG_PAYLOAD_REF_COUNT *
-				sizeof(struct tee_ioctl_param)) /
-			sizeof(uint64_t)] = { 0 };
+				sizeof(struct tee_ioctl_param);
+	void *buf;
 	struct tee_ioctl_buf_data buf_data;
 	struct tee_ioctl_open_session_arg *arg;
 	struct tee_ioctl_param *params;
@@ -492,8 +492,15 @@ TEEC_Result TEEC_OpenSession(struct TEEC_Context *ctx,
 		goto out;
 	}
 
+	buf = kzalloc(buf_len, GFP_KERNEL);
+	if (!buf) {
+		eorig = TEEC_ORIGIN_API;
+		res = TEEC_ERROR_OUT_OF_MEMORY;
+		goto out;
+	}
+
 	buf_data.buf_ptr = (uintptr_t)buf;
-	buf_data.buf_len = sizeof(buf);
+	buf_data.buf_len = buf_len;
 
 	arg = (struct tee_ioctl_open_session_arg *)buf;
 	arg->num_params = TEEC_CONFIG_PAYLOAD_REF_COUNT;
@@ -525,6 +532,7 @@ TEEC_Result TEEC_OpenSession(struct TEEC_Context *ctx,
 
 out_free_temp_refs:
 	teec_free_temp_refs(operation, shm);
+	kfree(buf);
 out:
 	if (ret_origin)
 		*ret_origin = eorig;
@@ -549,10 +557,10 @@ EXPORT_SYMBOL(TEEC_CloseSession);
 TEEC_Result TEEC_InvokeCommand(struct TEEC_Session *session, uint32_t cmd_id,
 		struct TEEC_Operation *operation, uint32_t *error_origin)
 {
-	uint64_t buf[(sizeof(struct tee_ioctl_invoke_arg) +
+	const size_t buf_len = sizeof(struct tee_ioctl_invoke_arg) +
 			TEEC_CONFIG_PAYLOAD_REF_COUNT *
-				sizeof(struct tee_ioctl_param)) /
-			sizeof(uint64_t)] = { 0 };
+				sizeof(struct tee_ioctl_param);
+	void *buf;
 	struct tee_ioctl_buf_data buf_data;
 	struct tee_ioctl_invoke_arg *arg;
 	struct tee_ioctl_param *params;
@@ -567,8 +575,15 @@ TEEC_Result TEEC_InvokeCommand(struct TEEC_Session *session, uint32_t cmd_id,
 		goto out;
 	}
 
+	buf = kzalloc(buf_len, GFP_KERNEL);
+	if (!buf) {
+		eorig = TEEC_ORIGIN_API;
+		res = TEEC_ERROR_OUT_OF_MEMORY;
+		goto out;
+	}
+
 	buf_data.buf_ptr = (uintptr_t)buf;
-	buf_data.buf_len = sizeof(buf);
+	buf_data.buf_len = buf_len;
 
 	arg = (struct tee_ioctl_invoke_arg *)buf;
 	arg->num_params = TEEC_CONFIG_PAYLOAD_REF_COUNT;
@@ -603,6 +618,7 @@ TEEC_Result TEEC_InvokeCommand(struct TEEC_Session *session, uint32_t cmd_id,
 
 out_free_temp_refs:
 	teec_free_temp_refs(operation, shm);
+	kfree(buf);
 out:
 	if (error_origin)
 		*error_origin = eorig;
