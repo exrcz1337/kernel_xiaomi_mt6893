@@ -8,7 +8,7 @@ function compile()
     export ARCH=arm64
     export KBUILD_BUILD_HOST=buildbot
     export KBUILD_BUILD_USER="exerczz1"
-    export DEVICE="AGATE"
+    export DEVICE="Agate"
 
     mkdir -p out
 
@@ -27,7 +27,7 @@ function zupload()
     fi
     cp out/arch/arm64/boot/Image.gz AnyKernel/
     cd AnyKernel
-    zip -r9 4.19.325-Clang18-KERNEL-$DEVICE.zip * -x .git .github README.md "*.zip"
+    zip -r9 4.19.325-RemiKernel-$DEVICE.zip * -x .git .github README.md "*.zip"
     cd ..
 }
 

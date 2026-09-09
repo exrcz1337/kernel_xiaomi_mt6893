@@ -1979,7 +1979,8 @@ static void ffs_epfiles_destroy(struct ffs_epfile *epfiles, unsigned count)
 	for (; count; --count, ++epfile) {
 		BUG_ON(mutex_is_locked(&epfile->mutex));
 		if (epfile->dentry) {
-			d_delete(epfile->dentry);
+			if (d_really_is_positive(epfile->dentry))
+				d_delete(epfile->dentry);
 			dput(epfile->dentry);
 			epfile->dentry = NULL;
 		}
