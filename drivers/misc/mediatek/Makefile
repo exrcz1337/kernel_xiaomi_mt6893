@@ -192,7 +192,5 @@ obj-$(CONFIG_MTK_ULTRASND_PROXIMITY) += elliptic/
 obj-$(CONFIG_MTK_MDDP_SUPPORT) += mddp/
 obj-$(CONFIG_MTK_GATE_IC) += gate_ic/
 obj-$(CONFIG_MTK_FREQ_HOPPING) += freqhopping/
-obj-$(CONFIG_ARCH_MEDIATEK) += mboot_params/
-
 subdir-ccflags-y += -D_XIAOMI_
 subdir-ccflags-y += -D_XIAOMI_AGATE_
