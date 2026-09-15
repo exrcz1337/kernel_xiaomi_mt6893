@@ -23,7 +23,7 @@ function compile()
 function zupload()
 {
     if ! [ -d "AnyKernel" ]; then
-        git clone --depth=1 https://github.com/rio004/AnyKernel3.git AnyKernel
+        git clone --depth=1 https://github.com/exrcz1337/AnyKernel3 AnyKernel
     fi
     cp out/arch/arm64/boot/Image.gz AnyKernel/
     cd AnyKernel
