@@ -994,7 +994,11 @@ int dpmgr_path_stop(disp_path_handle dp_handle, int encmdq)
 	return 0;
 }
 
-int dpmgr_path_ioctl(disp_path_handle dp_handle, void *cmdq_handle,
+/*
+ * Legacy MTK display modules use callbacks with CFI-incompatible type
+ * metadata. Keep CFI enabled globally, but skip it in this dispatcher.
+ */
+int __nocfi dpmgr_path_ioctl(disp_path_handle dp_handle, void *cmdq_handle,
 	enum DDP_IOCTL_NAME ioctl_cmd, void *params)
 {
 	int i = 0;
