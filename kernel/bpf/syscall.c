@@ -301,7 +301,7 @@ static void *__bpf_map_area_alloc(u64 size, int numa_node, bool mmapable)
 	 * __GFP_RETRY_MAYFAIL to avoid such situations.
 	 */
 
-	const gfp_t gfp = __GFP_NOWARN | __GFP_ZERO | __GFP_ACCOUNT;
+	const gfp_t gfp = __GFP_NOWARN | __GFP_ZERO;
 	unsigned int flags = 0;
 	unsigned long align = 1;
 	void *area;
