@@ -1575,6 +1575,15 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
 		BUG_ON(vma->vm_flags & VM_PFNMAP);
 		vma->vm_flags |= VM_MIXEDMAP;
 	}
+#ifdef CONFIG_MEMCG_KMEM
+	/*
+	 * Pages with PageKmemcg set must not be mapped to userspace
+	 * because page_type and _mapcount share the same storage.
+	 * Clear PageKmemcg to avoid corrupting page_type.
+	 */
+	if (PageKmemcg(page))
+		__ClearPageKmemcg(page);
+#endif
 	return insert_page(vma, addr, page, vma->vm_page_prot);
 }
 EXPORT_SYMBOL(vm_insert_page);
