@@ -2148,6 +2148,10 @@ static int move_freepages(struct zone *zone,
 		}
 
 		order = page_order(page);
+		if (WARN_ON_ONCE(order >= MAX_ORDER || page_count(page) != 0)) {
+			page++;
+			continue;
+		}
 		list_move(&page->lru,
 			  &zone->free_area[order].free_list[migratetype]);
 		page += 1 << order;
@@ -3003,7 +3007,8 @@ int __isolate_free_page(struct page *page, unsigned int order)
 	struct zone *zone;
 	int mt;
 
-	BUG_ON(!PageBuddy(page));
+	if (WARN_ON_ONCE(!PageBuddy(page) || order >= MAX_ORDER || page_count(page) != 0))
+		return 0;
 
 	zone = page_zone(page);
 	mt = get_pageblock_migratetype(page);
