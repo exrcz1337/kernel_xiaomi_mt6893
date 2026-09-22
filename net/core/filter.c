@@ -4729,7 +4729,7 @@ static const struct bpf_func_proto bpf_get_socket_cookie_sock_ops_proto = {
 	.arg1_type	= ARG_PTR_TO_CTX,
 };
 
-u64 __bpf_get_netns_cookie(struct sock *sk)
+static u64 __bpf_get_netns_cookie(struct sock *sk)
 {
 	const struct net *net = sk ? sock_net(sk) : &init_net;
 
