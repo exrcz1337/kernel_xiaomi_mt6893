@@ -1,0 +1,43 @@
+name: Start build
+on:
+  workflow_dispatch:
+
+jobs:
+  Building:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🔄 Checkout Code
+      uses: actions/checkout@v5
+
+    - name: ⚙️ Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang-18 lld-18 llvm-18 \
+          gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi \
+          ccache bc bison flex libssl-dev libelf-dev \
+          zip unzip git
+
+    - name: 🗃️ Cache ccache
+      uses: actions/cache@v4
+      with:
+        path: ~/.ccache
+        key: ccache-agate-${{ github.ref_name }}-${{ github.sha }}
+        restore-keys: |
+          ccache-agate-${{ github.ref_name }}-
+          ccache-agate-
+
+    - name: 🛠️ Compile kernel
+      run: |
+        export CCACHE_DIR=~/.ccache
+        export PATH="/usr/lib/llvm-18/bin:$PATH"
+        chmod +x build.sh
+        ./build.sh
+
+    - name: 📤 Upload zip
+      uses: actions/upload-artifact@v4
+      with:
+        name: agate-kernel-${{ github.sha }}
+        path: AnyKernel/*.zip
+        
