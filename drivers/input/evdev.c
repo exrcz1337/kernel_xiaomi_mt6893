@@ -29,6 +29,13 @@
 #include <linux/cdev.h>
 #include "input-compat.h"
 
+enum evdev_clock_type {
+	EV_CLK_REAL = 0,
+	EV_CLK_MONO,
+	EV_CLK_BOOT,
+	EV_CLK_MAX
+};
+
 struct evdev {
 	int open;
 	struct input_handle handle;
@@ -50,7 +57,7 @@ struct evdev_client {
 	struct fasync_struct *fasync;
 	struct evdev *evdev;
 	struct list_head node;
-	enum input_clock_type clk_type;
+	unsigned int clk_type;
 	bool revoked;
 	unsigned long *evmasks[EV_CNT];
 	unsigned int bufsize;
@@ -148,10 +155,17 @@ static void __evdev_flush_queue(struct evdev_client *client, unsigned int type)
 
 static void __evdev_queue_syn_dropped(struct evdev_client *client)
 {
-	ktime_t *ev_time = input_get_timestamp(client->evdev->handle.dev);
-	struct timespec64 ts = ktime_to_timespec64(ev_time[client->clk_type]);
 	struct input_event ev;
+	ktime_t time;
+	struct timespec64 ts;
 
+	time = client->clk_type == EV_CLK_REAL ?
+			ktime_get_real() :
+			client->clk_type == EV_CLK_MONO ?
+				ktime_get() :
+				ktime_get_boottime();
+
+	ts = ktime_to_timespec64(time);
 	memset(&ev, 0, sizeof(ev));
 	ev.input_event_sec = ts.tv_sec;
 	ev.input_event_usec = ts.tv_nsec / NSEC_PER_USEC;
@@ -180,18 +194,18 @@ static void evdev_queue_syn_dropped(struct evdev_client *client)
 static int evdev_set_clk_type(struct evdev_client *client, unsigned int clkid)
 {
 	unsigned long flags;
-	enum input_clock_type clk_type;
+	unsigned int clk_type;
 
 	switch (clkid) {
 
 	case CLOCK_REALTIME:
-		clk_type = INPUT_CLK_REAL;
+		clk_type = EV_CLK_REAL;
 		break;
 	case CLOCK_MONOTONIC:
-		clk_type = INPUT_CLK_MONO;
+		clk_type = EV_CLK_MONO;
 		break;
 	case CLOCK_BOOTTIME:
-		clk_type = INPUT_CLK_BOOT;
+		clk_type = EV_CLK_BOOT;
 		break;
 	default:
 		return -EINVAL;
@@ -301,7 +315,12 @@ static void evdev_events(struct input_handle *handle,
 {
 	struct evdev *evdev = handle->private;
 	struct evdev_client *client;
-	ktime_t *ev_time = input_get_timestamp(handle->dev);
+	ktime_t ev_time[EV_CLK_MAX];
+
+	ev_time[EV_CLK_MONO] = ktime_get();
+	ev_time[EV_CLK_REAL] = ktime_mono_to_real(ev_time[EV_CLK_MONO]);
+	ev_time[EV_CLK_BOOT] = ktime_mono_to_any(ev_time[EV_CLK_MONO],
+						 TK_OFFS_BOOT);
 
 	rcu_read_lock();
 
@@ -1236,6 +1255,8 @@ static long evdev_do_ioctl(struct file *file, unsigned int cmd,
 				return -EINVAL;
 
 			t = _IOC_NR(cmd) & ABS_MAX;
+
+			memset(&abs, 0, sizeof(abs));
 
 			if (copy_from_user(&abs, p, min_t(size_t,
 					size, sizeof(struct input_absinfo))))
