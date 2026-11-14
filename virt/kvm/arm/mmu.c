@@ -967,7 +967,7 @@ void stage2_unmap_vm(struct kvm *kvm)
 	int idx;
 
 	idx = srcu_read_lock(&kvm->srcu);
-	mmap_read_lock(current->mm);
+	down_read(&current->mm->mmap_sem);
 	spin_lock(&kvm->mmu_lock);
 
 	slots = kvm_memslots(kvm);
@@ -975,7 +975,7 @@ void stage2_unmap_vm(struct kvm *kvm)
 		stage2_unmap_memslot(kvm, memslot);
 
 	spin_unlock(&kvm->mmu_lock);
-	mmap_read_unlock(current->mm);
+	up_read(&current->mm->mmap_sem);
 	srcu_read_unlock(&kvm->srcu, idx);
 }
 
@@ -1507,12 +1507,23 @@ static int user_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t fault_ipa,
 		return -EFAULT;
 	}
 
+	/*
+	 * Top up the MMU cache before reading mmu_notifier_seq (and before
+	 * taking mmap_sem) so that a potentially blocking allocation does
+	 * not widen the window in which a change to the VMA can go
+	 * undetected.
+	 */
+	ret = mmu_topup_memory_cache(memcache, KVM_MMU_CACHE_MIN_PAGES,
+				     KVM_NR_MEM_OBJS);
+	if (ret)
+		return ret;
+
 	/* Let's check if we will get back a huge page backed by hugetlbfs */
-	mmap_read_lock(current->mm);
+	down_read(&current->mm->mmap_sem);
 	vma = find_vma_intersection(current->mm, hva, hva + 1);
 	if (unlikely(!vma)) {
 		kvm_err("Failed to find VMA for hva 0x%lx\n", hva);
-		mmap_read_unlock(current->mm);
+		up_read(&current->mm->mmap_sem);
 		return -EFAULT;
 	}
 
@@ -1533,15 +1544,19 @@ static int user_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t fault_ipa,
 		    ((memslot->base_gfn << PAGE_SHIFT) & ~PMD_MASK))
 			force_pte = true;
 	}
-	mmap_read_unlock(current->mm);
 
-	/* We need minimum second+third level pages */
-	ret = mmu_topup_memory_cache(memcache, KVM_MMU_CACHE_MIN_PAGES,
-				     KVM_NR_MEM_OBJS);
-	if (ret)
-		return ret;
-
+	/*
+	 * Read mmu_notifier_seq while still holding mmap_sem so that KVM can
+	 * detect if the results of find_vma_intersection() (e.g. the huge
+	 * page decision above) or gfn_to_pfn_prot() become stale prior to
+	 * acquiring kvm->mmu_lock.  A competing VMA change has to take
+	 * mmap_sem for write and the mmu notifier bumps mmu_notifier_seq
+	 * under kvm->mmu_lock, so mmu_notifier_retry() will notice any
+	 * change made once we drop mmap_sem.
+	 */
 	mmu_seq = vcpu->kvm->mmu_notifier_seq;
+	up_read(&current->mm->mmap_sem);
+
 	/*
 	 * Ensure the read of mmu_notifier_seq happens before we call
 	 * gfn_to_pfn_prot (which calls get_user_pages), so that we don't risk
@@ -2084,7 +2099,7 @@ int kvm_arch_prepare_memory_region(struct kvm *kvm,
 	    (KVM_PHYS_SIZE >> PAGE_SHIFT))
 		return -EFAULT;
 
-	mmap_read_lock(current->mm);
+	down_read(&current->mm->mmap_sem);
 	/*
 	 * A memory region could potentially cover multiple VMAs, and any holes
 	 * between them, so iterate over all of them to find out if we can map
@@ -2152,7 +2167,7 @@ int kvm_arch_prepare_memory_region(struct kvm *kvm,
 		stage2_flush_memslot(kvm, memslot);
 	spin_unlock(&kvm->mmu_lock);
 out:
-	mmap_read_unlock(current->mm);
+	up_read(&current->mm->mmap_sem);
 	return ret;
 }
 
